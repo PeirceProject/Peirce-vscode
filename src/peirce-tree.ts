@@ -231,7 +231,7 @@ export class InfoView {
             console.log(spaces);
             let i = 0;
             const domain = await vscode.window.showQuickPick(spaces, {
-                placeHolder: 'Select a time coordinate space'
+                placeHolder: 'Select Domain Space'
             });
             console.log("space quick pick")
             console.log(domain);
@@ -240,7 +240,7 @@ export class InfoView {
             }
             console.log(spaces);
             const codomain = await vscode.window.showQuickPick(spaces, {
-                placeHolder: 'Select a time coordinate space'
+                placeHolder: 'Select Codomain Space'
             });
             console.log("space quick pick")
             console.log(codomain);
@@ -337,7 +337,7 @@ export class InfoView {
             console.log(spaces);
             let i = 0;
             const domain = await vscode.window.showQuickPick(spaces, {
-                placeHolder: 'Select a time coordinate space'
+                placeHolder: 'Select Domain Space'
             });
             console.log("space quick pick")
             console.log(domain);
@@ -346,7 +346,7 @@ export class InfoView {
             }
             console.log(spaces);
             const codomain = await vscode.window.showQuickPick(spaces, {
-                placeHolder: 'Select a time coordinate space'
+                placeHolder: 'Select Codomain Space'
             });
             console.log("space quick pick")
             console.log(codomain);
@@ -717,7 +717,7 @@ export class InfoView {
             console.log(spaces);
             let i = 0;
             const domain = await vscode.window.showQuickPick(spaces, {
-                placeHolder: 'Select a time coordinate space'
+                placeHolder: 'Select Domain Space'
             });
             console.log("space quick pick")
             console.log(domain);
@@ -726,7 +726,7 @@ export class InfoView {
             }
             console.log(spaces);
             const codomain = await vscode.window.showQuickPick(spaces, {
-                placeHolder: 'Select a time coordinate space'
+                placeHolder: 'Select Codomain Space'
             });
             console.log("space quick pick")
             console.log(codomain);
