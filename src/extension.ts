@@ -11,14 +11,16 @@ import peircetree = require("./peirce-tree")
 import { initializeStorageLocation, getAnnotationFilePath } from './configuration';
 import { updateDecorations } from './decoration/decoration';
 
+// activates our extension
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "code-annotation" is now active!');
-
     initializeStorageLocation(context.globalStoragePath);
 
     const tree = new peircetree.PeirceTree();
     const infoView = new peircetree.InfoView();
     const treeActions = new peircetree.TreeActions(tree, infoView);
+    // testing this lol
+    let activePeirceFile : string | undefined = '';
 
     vscode.window.registerTreeDataProvider('codeAnnotationView', tree);
     vscode.commands.registerCommand('code-annotation.removeTerm', treeActions.removeTerm.bind(treeActions));
@@ -32,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('code-annotation.openTermFromId', (id: string) => {
         treeActions.openTermFromId(id);
     });
-
+    // register summary command (this needs to be implemented, no? -- Jacob 6-23-21)
     vscode.commands.registerCommand('code-annotation.summary', () => {
         generateMarkdownReport();
     });
@@ -46,9 +48,11 @@ export function activate(context: vscode.ExtensionContext) {
         console.log("EDIT HOVERED NOTES??");
         infoView.editHoveredTerms();
     });
-
+    // registers the populate command
     vscode.commands.registerCommand('code-annotation.populate', async () => {
-        vscode.window.showInformationMessage("Populating...");
+        // delete below line if break-y
+        peirce.setActivePeircefile(vscode.window.activeTextEditor?.document.fileName);
+        vscode.window.showInformationMessage("Populating...")
         peirce.populate();
     });
 
@@ -87,11 +91,77 @@ export function activate(context: vscode.ExtensionContext) {
     //    addSpace();
     //});
 
+    // preliminary version of hovers implemented below
+
+    disposable = vscode.languages.registerHoverProvider('cpp', {
+        // hover provider for cpp files
+        provideHover(document, position, token) {
+            /*
+            THIS IS VERY IMPORTANT NOTE!!!
+
+            Right now, this is an imperfect way to do this. We have a couple of options for fixing:
+            1. Fix the issue of note snippets overlapping (this is probably very hard, but if you're already working on it,
+            more power to you)
+            2. Completely rework this, this may end up being the only way to do this if fixing overlapping notes is difficult.
+            */
+            const notesList = peircedb.getTerms();
+
+            // check to see if the hovered word is within the range of each note
+            for (let i = 0; i < notesList.length; i++){
+                let note = notesList[i];
+                // only consider this note if it exists on the same line as the hover
+                // if it does, set word to the interp of the note and break from loop
+                let hoverPos = position.character;
+                // if you are hovering on the same line as the note we are looking at
+                if (note.positionStart.line === position.line){
+                    // check to see if this is the right note, and if it is, return a hover with the note's intepretation's label
+                    let start = note.positionStart.character;
+                    let end = note.positionEnd.character;
+                    if (start <= hoverPos && end >= hoverPos && note.interpretation?.label){
+                        let word = note.interpretation?.label;
+                        let error = note.error ? note.error : "";
+                        // TODO: Make this markdown string better, more human readable
+                        return {
+                            contents: [`**Interpretation**: ${word}`,`**Error**: ${error}`]
+                        };
+                    }
+                }
+            }
+            // if the above yielded nothing, return a null hover, as we don't want anything to appear
+            return null;
+        }
+    })
+
+    context.subscriptions.push(disposable);
+
     vscode.workspace.onDidChangeConfiguration(() => updateDecorations(context) );
 
     updateDecorations(context);
 
     context.subscriptions.push(disposable);
+
+    vscode.window.onDidChangeActiveTextEditor( () => {
+        // vscode.commands.executeCommand('code-annotation.refreshEntry');
+        // use regex to determine if the activeTextEditor is a valid Peirce File (.cpp)
+        let re = new RegExp('...*.cpp');
+        let fileName = vscode.window.activeTextEditor?.document.fileName;
+        if (fileName != undefined){
+            if (fileName.match(re) && peirce.getActivePeirceFile() != ""){
+                // make an info window here and prompt user to populate if they want to change file
+                vscode.window.showInformationMessage(
+                    `You've changed windows! If you want to annotate this file, please populate it! The current file is ${peirce.getActivePeirceFile()}`,
+                    'Dismiss'
+                );
+            }else if (fileName.match(re)){
+                // prompt user to populate if they switch to valid peirce file and want to annotate
+                vscode.window.showInformationMessage(
+                    "There is currently no active Peirce file. If you would like to annotate this file, please populate it!",
+                    "Dismiss"
+                );
+            }
+        }
+    })
+
 }
 
 // this method is called when your extension is deactivated

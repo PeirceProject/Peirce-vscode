@@ -11,6 +11,16 @@ interface APIPosition {
     line: number;
     character: number;
 }
+// attempting to manage global state lol
+let activePeirceFile : string | undefined = '';
+
+export const getActivePeirceFile = () : string | undefined => {
+    return activePeirceFile;
+}
+
+export const setActivePeircefile = ( newFile : string | undefined) : void => {
+    activePeirceFile = newFile;
+}
 interface APICoordinates {
     begin: APIPosition;
     end: APIPosition;
@@ -42,16 +52,17 @@ export const populate = async (): Promise<void> => {
     if (editor === undefined)
         return;
     const fileText = vscode.window.activeTextEditor?.document.getText();
+    const fileName = vscode.window.activeTextEditor?.document.fileName;
     for(let i = 0;i<10;i++)
         console.log('PRINT FILE NAME')
-        console.log(vscode.window.activeTextEditor?.document.fileName);
+        console.log(fileName);
     let terms = peircedb.getTerms();
     //console.log(terms);
     //console.log(JSON.stringify(terms));
     //console.log(fileText);
     //console.log(JSON.stringify(fileText));
     let request = {
-        fileName: vscode.window.activeTextEditor?.document.fileName,
+        fileName: fileName,
         file: fileText,
         terms: terms,
     }
@@ -75,7 +86,7 @@ export const populate = async (): Promise<void> => {
     console.log('printing cdata')
     console.log(cdata)
     let termsSummary = JSON.stringify(data); 
-    peircedb.deleteFilesTerms();
+    peircedb.deleteFilesTerms(fileName);
     // to fix this, we need to have a well-defined JSON response object
     // and change data : any -> data : well-defined-object[]
     
@@ -86,15 +97,20 @@ export const populate = async (): Promise<void> => {
         );
         // Might be able to clean this up
         // Set the vscode.editor.selection position,
+        const defaultInterp = "No interpretation provided";
         if (editor)
-            peircedb.addPeirceTerm(element.interp, element.node_type, element.error, editor, range);
+            // peircedb.addPeirceTerm(element.interp, element.node_type, element.error, editor, range);
+
+            // this might not be the best way to clear checked interps on repop, but it's the best I could figure out
+            // the previous way we were adding is left in in case we find bugs/it's better to have it the other way for
+            // future functionality
+            peircedb.addPeirceTerm(defaultInterp, element.node_type, element.error, editor, range);
     });
 
     cdata.forEach(element => {
         if (editor)
             peircedb.addPeirceConstructor(element.interp, element.type, element.name, editor);
     });
-
     setDecorations();
     return;
 };

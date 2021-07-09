@@ -6,6 +6,7 @@ import { getAnnotationFilePath, getConfiguration } from './configuration';
 import { setDecorations } from './decoration/decoration';
 import { CustomInspectFunction } from 'util';
 import models = require("./models")
+import peirce = require("./peirce_api_calls");
 
 
 export interface PeirceDb {
@@ -71,17 +72,18 @@ export const getConstructorFromId = (termId : string) : models.Constructor | nul
 export const getFileTerms = (): models.Term[] => {
     let db = getPeirceDb();
     let new_terms : models.Term[] = [];
+    const fileName = peirce.getActivePeirceFile();
     db.terms.forEach(term => {
         // Might be able to clean this up
         // Set the vscode.editor.selection position,
         // and let the prebuilt addTerm functions do the rest.
-        if (term.fileName == vscode.window.activeTextEditor?.document.fileName)
+        if (term.fileName == fileName)
             new_terms.push(term);
     });
     return new_terms;
 };
 
-export const deleteFilesTerms = (): void => {
+export const deleteFilesTerms = (fileName : string | undefined): void => {
     let db = getPeirceDb();
     let new_terms : models.Term[] = [];
     db.terms.forEach(term => {
@@ -89,10 +91,15 @@ export const deleteFilesTerms = (): void => {
         // Might be able to clean this up
         // Set the vscode.editor.selection position,
         // and let the prebuilt addTerm functions do the rest.
-        if (term.fileName != vscode.window.activeTextEditor?.document.fileName)
+        if (term.fileName != fileName)
             new_terms.push(term);
     });
     db.terms = new_terms;
+    // delete all constructors and spaces in a very hacky way
+    db.constructors = [];
+    db.geom1d_coordinate_spaces = [];
+    db.geom3d_coordinate_spaces = [];
+    db.time_coordinate_spaces = [];
     saveDb(db);
     return;
 };
