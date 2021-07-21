@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { getConfiguration } from '../configuration';
-import { getTerms } from '../peircedb';
+import { getTerms, getAllTerms } from '../peircedb';
 
 // Should we get rid of this? Only referenced in the commented code on line 82 (my thoughts say yes, but would like another opinion)
 const decorationType = () : vscode.TextEditorDecorationType => {
@@ -60,6 +60,45 @@ export const setDecorations = (): void => {
             const temp_error : boolean[] = [];
             let temp_error_ : boolean = false;
             if (term.fileName === editor.document.fileName) {
+                const positionStart = new vscode.Position(term.positionStart.line, term.positionStart.character);
+                const positionEnd = new vscode.Position(term.positionEnd.line, term.positionEnd.character);
+                ranges.push(new vscode.Range(positionStart, positionEnd));
+                if(term.error == "Not checked" || term.error == "No Error Detected"){
+                    has_error.push(false);
+                    temp_error.push(false);
+                    temp_error_ = false;
+                }
+                else {
+                    has_error.push(true);
+                    temp_error.push(true);
+                    temp_error_ = true;
+                }
+                // check to see if note is annotated, setting temp_annotated as necessary
+                let temp_annotated : boolean;
+                if (term.interpretation) {
+                    temp_annotated = true;
+                }else{
+                    temp_annotated = false;
+                }
+                console.log(term.error)
+                console.log(temp_error_)
+                temprange.push(new vscode.Range(positionStart, positionEnd));
+                // set the decorations using the decorationOption decoration type over the range indicated by this note
+                editor.setDecorations(decorationOption(temp_error_, temp_annotated), temprange);
+            }
+        });
+
+        console.log('SOURCE GET ALL TERMS')
+        console.log(getAllTerms())
+
+        getAllTerms().forEach( term => {
+            const temprange : vscode.Range[] = [];
+            const temp_error : boolean[] = [];
+            let temp_error_ : boolean = false;
+            if (term.fileName === editor.document.fileName) {
+                console.log('all term')
+                console.log(term)
+
                 const positionStart = new vscode.Position(term.positionStart.line, term.positionStart.character);
                 const positionEnd = new vscode.Position(term.positionEnd.line, term.positionEnd.character);
                 ranges.push(new vscode.Range(positionStart, positionEnd));

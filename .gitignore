@@ -4,3 +4,5 @@ node_modules
 .vscode/
 code-annotation-0.0.1.vsix
 nohup.out
+peirce-plugin-0.0.1.vsix
+*.vsix

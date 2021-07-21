@@ -24,6 +24,7 @@ export interface PeirceDb {
     time_coordinate_spaces: models.TimeCoordinateSpace[];
     geom1d_coordinate_spaces: models.Geom1DCoordinateSpace[];
     geom3d_coordinate_spaces: models.Geom3DCoordinateSpace[];
+    all_terms: models.Term[];
     nextId: number;
 }
 
@@ -36,9 +37,14 @@ export const getPeirceDb = (): PeirceDb => {
     annotations.time_coordinate_spaces = annotations.time_coordinate_spaces || [];
     annotations.geom1d_coordinate_spaces = annotations.geom1d_coordinate_spaces || [];
     annotations.geom3d_coordinate_spaces = annotations.geom3d_coordinate_spaces || [];
+    annotations.all_terms = annotations.all_terms || [];
     //console.log('terms db: ')
     //console.log(annotations)
     return annotations;
+};
+
+export const getAllTerms = (): models.Term[] => {
+    return getPeirceDb().all_terms;
 };
 
 
@@ -113,6 +119,19 @@ export const deleteFilesTerms = (fileName : string | undefined): void => {
     return;
 };
 
+export const resetAllTerms = (fileName : string | undefined): void => {
+    let db = getPeirceDb();
+    let new_terms : models.Term[] = [];
+    /*db.all_terms.forEach(term => {
+        console.log(term)
+        if (term.fileName != fileName)
+            new_terms.push(term);
+    });*/
+    db.all_terms = new_terms;
+    saveDb(db);
+    return;
+};
+
 export const getTimeSpaces = (): models.TimeCoordinateSpace[] => {
     return getPeirceDb().time_coordinate_spaces;
 };
@@ -160,6 +179,16 @@ export const saveTerms = (terms: models.Term[]) => {
 
     // Replace terms by the one passed
     db.terms = terms;
+
+    // Save Db in JSON file
+    saveDb(db);
+};
+
+export const saveAllTerms = (terms: models.Term[]) => {
+    let db = getPeirceDb();
+
+    // Replace terms by the one passed
+    db.all_terms = terms;
 
     // Save Db in JSON file
     saveDb(db);
@@ -290,6 +319,14 @@ const addTermToDb = (term: models.Term) => {
     vscode.window.showInformationMessage('Annotation saved!');
 };
 
+const addAllTermToDb = (term: models.Term) => {
+    let db = getPeirceDb();
+
+    db.all_terms.push(term);
+
+    saveDb(db);
+};
+
 const getTODOFromSelectedText = (): string | undefined => {
     const editor = vscode.window.activeTextEditor;
     const selectedText = editor?.selection ? editor.document.getText(editor.selection) : '';
@@ -346,6 +383,13 @@ export const addPeirceTerm = async (annotationText : string, type : string, erro
         addTermToDb(createPeirceTerm(annotationText, type, error, editor, range))
     }
     setDecorations();
+};
+
+export const addPeirceAllTerm = async (annotationText : string, type : string, error : string, editor : vscode.TextEditor, range : vscode.Range) => {
+    if (editor) {
+        addAllTermToDb(createPeirceTerm(annotationText, type, error, editor, range))
+    }
+    //setDecorations();
 };
 
 export const addPeirceConstructor = async (annotationText : string, type : string, name: string, editor : vscode.TextEditor) => {

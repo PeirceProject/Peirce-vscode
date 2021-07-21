@@ -6,6 +6,7 @@ import models = require("./models")
 
 import {
     PopulateAPIReponse,
+    PopulateAPIData,
     getActivePeirceFile
 } from './peirce_api_calls'
 import { getConfiguration } from './configuration';
@@ -244,7 +245,7 @@ export class InfoView {
             console.log(spaces);
             let i = 0;
             const domain = await vscode.window.showQuickPick(spaces, {
-                placeHolder: 'Select a time coordinate space'
+                placeHolder: 'Select Domain Space'
             });
             console.log("space quick pick")
             console.log(domain);
@@ -253,7 +254,7 @@ export class InfoView {
             }
             console.log(spaces);
             const codomain = await vscode.window.showQuickPick(spaces, {
-                placeHolder: 'Select a time coordinate space'
+                placeHolder: 'Select Codomain Space'
             });
             console.log("space quick pick")
             console.log(codomain);
@@ -353,7 +354,7 @@ export class InfoView {
             console.log(spaces);
             let i = 0;
             const domain = await vscode.window.showQuickPick(spaces, {
-                placeHolder: 'Select a time coordinate space'
+                placeHolder: 'Select Domain Space'
             });
             console.log("space quick pick")
             console.log(domain);
@@ -362,7 +363,7 @@ export class InfoView {
             }
             console.log(spaces);
             const codomain = await vscode.window.showQuickPick(spaces, {
-                placeHolder: 'Select a time coordinate space'
+                placeHolder: 'Select Codomain Space'
             });
             console.log("space quick pick")
             console.log(codomain);
@@ -741,7 +742,7 @@ export class InfoView {
             console.log(spaces);
             let i = 0;
             const domain = await vscode.window.showQuickPick(spaces, {
-                placeHolder: 'Select a time coordinate space'
+                placeHolder: 'Select Domain Space'
             });
             console.log("space quick pick")
             console.log(domain);
@@ -750,7 +751,7 @@ export class InfoView {
             }
             console.log(spaces);
             const codomain = await vscode.window.showQuickPick(spaces, {
-                placeHolder: 'Select a time coordinate space'
+                placeHolder: 'Select Codomain Space'
             });
             console.log("space quick pick")
             console.log(codomain);
@@ -846,22 +847,15 @@ export class InfoView {
         let editor = vscode.window.activeTextEditor;
         if (editor === undefined)
             return;
-        const fileText = vscode.window.activeTextEditor?.document.getText();
+        const currentFile = vscode.window.activeTextEditor?.document.fileName;
 
-        //console.log(terms);
-        //console.log(JSON.stringify(terms));
-        //console.log(fileText);
-        //console.log(JSON.stringify(fileText));
         let request = {
-            file: fileText,
+            file: currentFile,
             fileName: vscode.window.activeTextEditor?.document.fileName,
             terms: terms,
             spaces: peircedb.getPeirceDb().time_coordinate_spaces.concat(peircedb.getPeirceDb().geom1d_coordinate_spaces),
             constructors: constructors
         }
-       // console.log('SENDING REQUEST')
-        //console.log(request)
-        //console.log(JSON.stringify(request));
         let login = {
             method: "POST",
             body: JSON.stringify(request),
@@ -879,16 +873,58 @@ export class InfoView {
             terms[i] = data[i]
         }
         let i = 0;
-        let all_terms = peircedb.getTerms();
-        for (let j = 0; j < all_terms.length; j++) {
-            if (all_terms[j].fileName != terms[i].fileName){
+        let terms_ = peircedb.getTerms();
+        for (let j = 0; j < terms_.length; j++) {
+            if (terms_[j].fileName != terms[i].fileName){
                 continue;
             }
-            all_terms[j].text = terms[i].text;
-            all_terms[j].error = terms[i].error;
+            terms_[j].text = terms[i].text;
+            terms_[j].error = terms[i].error;
             i++;
         }
-        peircedb.saveTerms(all_terms);
+        peircedb.saveTerms(terms_);
+
+        const apiUrlAll = "http://0.0.0.0:8080/api/check3";
+        
+        let login2 = {
+            method: "POST",
+            body: JSON.stringify({}),
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+        };
+        const responseAll = await fetch(apiUrlAll, login2);
+        const dataAll : PopulateAPIData[] = await responseAll.json();
+        peircedb.resetAllTerms(vscode.window.activeTextEditor?.document.fileName)
+        dataAll.forEach(element => {
+            console.log('adata??')
+            console.log(element)
+            console.log(element.coords.begin.line+','+element.coords.end.line)
+            if(element.coords.begin.line > 0 && element.coords.begin.character > 0 
+                && element.coords.end.line > 0 && element.coords.end.character > 0){
+                let range = new vscode.Range(
+                    new vscode.Position(element.coords.begin.line, element.coords.begin.character), 
+                    new vscode.Position(element.coords.end.line, element.coords.end.character), 
+                );
+                // Might be able to clean this up
+                // Set the vscode.editor.selection position,
+                const defaultInterp = "No interpretation provided";
+                if (editor){
+                    // peircedb.addPeirceTerm(element.interp, element.node_type, element.error, editor, range);
+    
+                    // this might not be the best way to clear checked interps on repop, but it's the best I could figure out
+                    // the previous way we were adding is left in in case we find bugs/it's better to have it the other way for
+                    // future functionality
+                    console.log('adding peirce all term')
+                    peircedb.addPeirceAllTerm(defaultInterp, element.node_type, element.error, editor, range);
+                }
+            }
+        });
+        //peircedb.saveAllTerms(all_terms);
+
+
         setDecorations();
     }
 
@@ -938,7 +974,7 @@ export class InfoView {
         };
         const apiUrl = "http://0.0.0.0:8080/api/createTermInterpretation";
         const response = await fetch(apiUrl, login);
-        console.log("This is the response from the addInterpRequestCall");
+        console.log('thisis the response?')
         console.log(response)
         const data : models.SuccessResponse = await response.json();
         console.log(data);
