@@ -4,7 +4,6 @@ import fetch from 'node-fetch';
 import peircedb = require("./peircedb")
 import models = require("./models")
 
-
 import {
     PopulateAPIReponse,
     getActivePeirceFile
@@ -14,6 +13,9 @@ import { getRelativePathForFileName } from './utils';
 import { setDecorations } from './decoration/decoration';
 import { Position, TextEditor, WebviewPanel } from 'vscode';
 import { privateEncrypt } from 'crypto';
+import { cpuUsage } from 'process';
+import { createReadStream } from 'fs';
+import { cursorTo } from 'readline';
 
 const getIconPathFromType = (type: string, theme: string): string => {
     return path.join(__filename, '..', '..', 'resources', theme, type.toLowerCase() + '.svg');
@@ -135,7 +137,15 @@ export class InfoView {
             }
             name = pickedName;
         }
-
+        // get the current order in which terms have been created, then increment the global interp number
+        let currInterpretationNumber = peircedb.getCurrentInterpretationNumber();
+        peircedb.setCurrentInterpretationNumber(currInterpretationNumber+1)
+        console.log("GETTING DB TERMS....");
+        console.log(peircedb.getTerms());
+        console.log("GETTING SPACES...");
+        console.log(peircedb.getGeom1DSpaces());
+        console.log(peircedb.getGeom3DSpaces());
+        console.log(peircedb.getTimeSpaces());
         if(interp.label == "Duration"){
 
             let spaces = peircedb.getTimeSpaces();
@@ -159,14 +169,14 @@ export class InfoView {
             if (termIsIdentifier) {
                 label = `${interp.label}(${space.label},${value})`
             }
-
             let interpretation : models.Duration = {
                 label: label,
                 name: name,
                 interp_type: interp.label,
                 space: space,
                 value: [+value],
-                node_type: "undefined"//term.node_type,
+                node_type: "undefined",//term.node_type,
+                order_created: currInterpretationNumber
             }
             return interpretation
             
@@ -202,6 +212,7 @@ export class InfoView {
                 space: space,
                 value: [+value],
                 node_type: "term.node_type",
+                order_created: currInterpretationNumber
             }
             return interpretation
         }
@@ -223,6 +234,7 @@ export class InfoView {
                 interp_type: interp.label,
                 value: [+value],
                 node_type: "term.node_type",
+                order_created: currInterpretationNumber
             }
             return interpretation
         }
@@ -261,6 +273,7 @@ export class InfoView {
                 domain: domain,
                 codomain: codomain,
                 node_type: "term.node_type",
+                order_created: currInterpretationNumber
             }
             return interpretation
         }
@@ -295,6 +308,7 @@ export class InfoView {
                 space: space,
                 value: [+value],
                 node_type: "term.node_type",
+                order_created: currInterpretationNumber
             }
             return interpretation
         }
@@ -329,6 +343,7 @@ export class InfoView {
                 space: space,
                 value: [+value],
                 node_type: "term.node_type",
+                order_created: currInterpretationNumber
             }
             return interpretation
         }
@@ -367,6 +382,7 @@ export class InfoView {
                 domain: domain,
                 codomain: codomain,
                 node_type: "term.node_type",
+                order_created: currInterpretationNumber
             }
             return interpretation
         }
@@ -409,6 +425,7 @@ export class InfoView {
                 space: space,
                 value: [+value0,+value1,+value2],
                 node_type: "term.node_type",
+                order_created: currInterpretationNumber
             }
             return interpretation
         }
@@ -452,6 +469,7 @@ export class InfoView {
                 space: space,
                 value: [+value0,+value1,+value2],
                 node_type: "term.node_type",
+                order_created: currInterpretationNumber
             }
             return interpretation
         }
@@ -521,6 +539,7 @@ export class InfoView {
                     space: space,
                     value: [+value0,+value1,+value2,+value3,+value4,+value5,+value6,+value7,+value8],
                     node_type: "term.node_type",
+                    order_created: currInterpretationNumber
                 }
                 return interpretation
             }
@@ -538,6 +557,7 @@ export class InfoView {
                     space: space,
                     value: [+value0,+value1,+value2,+value3],
                     node_type: "term.node_type",
+                    order_created: currInterpretationNumber
                 }
                 return interpretation
             }
@@ -609,6 +629,7 @@ export class InfoView {
                     space: space,
                     value: [+value0,+value1,+value2,+value3,+value4,+value5,+value6,+value7,+value8],
                     node_type: "term.node_type",
+                    order_created: currInterpretationNumber
                 }
                 return interpretation
             }
@@ -626,6 +647,7 @@ export class InfoView {
                     space: space,
                     value: [+value0,+value1,+value2,+value3],
                     node_type: "term.node_type",
+                    order_created: currInterpretationNumber
                 }
                 return interpretation
             }
@@ -709,6 +731,7 @@ export class InfoView {
                 space: space,
                 value: [+ortvalue0,+ortvalue1,+ortvalue2,+ortvalue3,+ortvalue4,+ortvalue5,+ortvalue6,+ortvalue7,+ortvalue8,+posvalue0,+posvalue1,+posvalue2],
                 node_type: "term.node_type",
+                order_created: currInterpretationNumber
             }
             return interpretation
         }
@@ -747,6 +770,7 @@ export class InfoView {
                 domain: domain,
                 codomain: codomain,
                 node_type: "term.node_type",
+                order_created: currInterpretationNumber
             }
             return interpretation
         }
@@ -914,8 +938,10 @@ export class InfoView {
         };
         const apiUrl = "http://0.0.0.0:8080/api/createTermInterpretation";
         const response = await fetch(apiUrl, login);
+        console.log("This is the response from the addInterpRequestCall");
         console.log(response)
         const data : models.SuccessResponse = await response.json();
+        console.log(data);
         return data.success
 
     };
@@ -960,6 +986,12 @@ export class InfoView {
         spaceOptions.push(time_space);
         spaceOptions.push(geom1d_space);
         spaceOptions.push(geom3d_space);
+        let currInterpNumber = peircedb.getCurrentInterpretationNumber();
+        let fileName = getActivePeirceFile();
+        // if no valid file selected, do NOT continue
+        if (!fileName){
+            return;
+        }
         const spaceTypePick = await vscode.window.showQuickPick(spaceOptions);
         console.log("quick pick")
         console.log(spaceTypePick);
@@ -985,6 +1017,8 @@ export class InfoView {
             }
             else if(stdderPick.label == "Standard Time Coordinate Space"){
                 const new_space : models.TimeCoordinateSpace = {
+                    fileName: fileName,
+                    order_created: currInterpNumber,
                     label: annotationText,
                     space: "Classical Time Coordinate Space", 
                     parent: null, 
@@ -996,6 +1030,7 @@ export class InfoView {
                     console.log("FAILED TO SAVE SPACE TO PEIRCE")
                     return
                 }
+                peircedb.setCurrentInterpretationNumber(currInterpNumber+1);
                 let db = peircedb.getPeirceDb();
                 db.time_coordinate_spaces.push(new_space);
                 peircedb.saveDb(db);
@@ -1018,6 +1053,8 @@ export class InfoView {
                 if (point_magnitude === undefined || point_magnitude == "" || Number(point_magnitude) == NaN)
                     return;
                 const new_space : models.TimeCoordinateSpace = {
+                    fileName: fileName,
+                    order_created: currInterpNumber,
                     label: annotationText, 
                     space: "Classical Time Coordinate Space", 
                     parent: parent, 
@@ -1029,6 +1066,7 @@ export class InfoView {
                     console.log("FAILED TO SAVE SPACE TO PEIRCE")
                     return
                 }
+                peircedb.setCurrentInterpretationNumber(currInterpNumber+1);
                 let db = peircedb.getPeirceDb();
                 db.time_coordinate_spaces.push(new_space);
                 peircedb.saveDb(db);
@@ -1055,6 +1093,8 @@ export class InfoView {
                 return;
             else if(stdderPick.label == "Standard Geom1D Coordinate Space"){
                 const new_space : models.Geom1DCoordinateSpace = {
+                    fileName: fileName,
+                    order_created: currInterpNumber,
                     label: annotationText,
                     space: "Classical Geom1D Coordinate Space", 
                     parent: null, 
@@ -1066,6 +1106,7 @@ export class InfoView {
                     console.log("FAILED TO SAVE SPACE TO PEIRCE")
                     return
                 }
+                peircedb.setCurrentInterpretationNumber(currInterpNumber+1);
                 let db = peircedb.getPeirceDb();
                 db.geom1d_coordinate_spaces.push(new_space);
                 peircedb.saveDb(db);
@@ -1089,6 +1130,8 @@ export class InfoView {
                 if (point_magnitude === undefined || point_magnitude == "" || Number(point_magnitude) == NaN)
                     return;
                 const new_space : models.Geom1DCoordinateSpace = {
+                    fileName: fileName,
+                    order_created: currInterpNumber,
                     label: annotationText, 
                     space: "Classical Geom1D Coordinate Space", 
                     parent: parent, 
@@ -1100,6 +1143,7 @@ export class InfoView {
                     console.log("FAILED TO SAVE SPACE TO PEIRCE")
                     return
                 }
+                peircedb.setCurrentInterpretationNumber(currInterpNumber+1);
                 let db = peircedb.getPeirceDb();
                 db.geom1d_coordinate_spaces.push(new_space);
                 peircedb.saveDb(db);
@@ -1124,6 +1168,8 @@ export class InfoView {
                 return;
             else if(stdderPick.label == "Standard Geom3D Coordinate Space"){
                 const new_space : models.Geom3DCoordinateSpace = {
+                    fileName: fileName,
+                    order_created: currInterpNumber,
                     label: annotationText,
                     space: "Classical Geom3D Coordinate Space", 
                     parent: null, 
@@ -1138,6 +1184,7 @@ export class InfoView {
                 }
                 else
                     console.log("SAVED")
+                peircedb.setCurrentInterpretationNumber(currInterpNumber+1);
                 let db = peircedb.getPeirceDb();
                 console.log('SAVE IT???')
                 console.log(new_space)
@@ -1181,6 +1228,8 @@ export class InfoView {
                 }
 
                 const new_space : models.Geom3DCoordinateSpace = {
+                    fileName: fileName,
+                    order_created: currInterpNumber,
                     label: annotationText, 
                     space: "Classical Geom3D Coordinate Space", 
                     parent: parent, 
@@ -1192,6 +1241,7 @@ export class InfoView {
                     console.log("FAILED TO SAVE SPACE TO PEIRCE")
                     return
                 }
+                peircedb.setCurrentInterpretationNumber(currInterpNumber+1);
                 let db = peircedb.getPeirceDb();
                 db.geom3d_coordinate_spaces.push(new_space);
                 peircedb.saveDb(db);
@@ -1248,6 +1298,9 @@ export class InfoView {
                 }
                 name = pickedName;
             }
+            // get the current Interpretation number and increment
+            let currInterpretationNumber = peircedb.getCurrentInterpretationNumber();
+            peircedb.setCurrentInterpretationNumber(currInterpretationNumber+1);
 
             if(interp.label == "Duration"){
 
@@ -1284,6 +1337,7 @@ export class InfoView {
                     space: space,
                     value: [+value],
                     node_type: term.node_type,
+                    order_created: currInterpretationNumber
                 }
                 terms[index].interpretation = interpretation;
                 peircedb.saveTerms(terms);
@@ -1327,6 +1381,7 @@ export class InfoView {
                     space: space,
                     value: [+value],
                     node_type: term.node_type,
+                    order_created: currInterpretationNumber
                 }
                 terms[index].interpretation = interpretation;
                 peircedb.saveTerms(terms);
@@ -1354,6 +1409,7 @@ export class InfoView {
                     interp_type: interp.label,
                     value: [+value],
                     node_type: term.node_type,
+                    order_created: currInterpretationNumber
                 }
                 terms[index].interpretation = interpretation;
                 peircedb.saveTerms(terms);
@@ -1401,6 +1457,7 @@ export class InfoView {
                     domain: domain,
                     codomain: codomain,
                     node_type: term.node_type,
+                    order_created: currInterpretationNumber
                 }
                 terms[index].interpretation = interpretation;
                 peircedb.saveTerms(terms);
@@ -1443,6 +1500,7 @@ export class InfoView {
                     space: space,
                     value: [+value],
                     node_type: term.node_type,
+                    order_created: currInterpretationNumber
                 }
                 terms[index].interpretation = interpretation;
                 peircedb.saveTerms(terms);
@@ -1485,6 +1543,7 @@ export class InfoView {
                     space: space,
                     value: [+value],
                     node_type: term.node_type,
+                    order_created: currInterpretationNumber
                 }
                 terms[index].interpretation = interpretation;
                 peircedb.saveTerms(terms);
@@ -1531,6 +1590,7 @@ export class InfoView {
                     domain: domain,
                     codomain: codomain,
                     node_type: term.node_type,
+                    order_created: currInterpretationNumber
                 }
                 terms[index].interpretation = interpretation;
                 peircedb.saveTerms(terms);

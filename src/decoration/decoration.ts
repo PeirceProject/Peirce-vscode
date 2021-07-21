@@ -21,22 +21,23 @@ const decorationType = () : vscode.TextEditorDecorationType => {
  */
 const decorationOption = (has_error : boolean, has_annotation : boolean) : vscode.TextEditorDecorationType => {
     //print
-    
     return vscode.window.createTextEditorDecorationType({
         // decoration options for dark mode
         // ---- NOTE: THE TEXT UNDERLINES FOR ANNOTATED NOTES WILL BE MADE BETTER IN FUTURE VERSIONS. FOR NOW, THEY WILL EXIST AS PROOF OF CONCEPT ----
         dark: {
-            backgroundColor: 
-                has_error ? getConfiguration().decorationColors?.error :
-                getConfiguration().decorationColors?.dark,
-            textDecoration: has_annotation ? '#EE59FF wavy underline' : ''
+            textDecoration: 
+                has_error ? getConfiguration().decorationColors?.error + " wavy underline":
+                "",
+                // getConfiguration().decorationColors?.dark,
+            // textDecoration: has_annotation ? '#EE59FF wavy underline' : ''
         },
         // decoration options for light mode
         light: {
-            backgroundColor: 
-                has_error ? getConfiguration().decorationColors?.light :
-                getConfiguration().decorationColors?.dark,
-            textDecoration: has_annotation ? '#EE59FF wavy underline' : ''
+            textDecoration:
+                has_error ? getConfiguration().decorationColors?.light + " wavy underline" :
+                "",
+                // getConfiguration().decorationColors?.dark,
+            // textDecoration: has_annotation ? '#EE59FF wavy underline' : ''
         }
     });
 };

@@ -24,6 +24,7 @@ export interface Term {
 }
 
 export interface Constructor {
+    fileName: string;
     id: number;
     name: string;
     interpretation: Interpretation | null;
@@ -36,7 +37,8 @@ export interface MeasurementSystem extends vscode.QuickPickItem{
 }
 
 export interface Space extends vscode.QuickPickItem {
-
+    order_created: number;
+    fileName: string;
 }
 
 export interface TimeCoordinateSpace extends Space {
@@ -69,6 +71,11 @@ export interface Interpretation extends vscode.QuickPickItem {
     name: string;
     interp_type: string;
     node_type: string;
+    /*
+    This represents the position in which the interpretation in question was created.
+    E.g. A value of 6 means that this interpretation was created 6th. 
+    */
+    order_created : number;
 }
 
 export interface Duration extends Interpretation {

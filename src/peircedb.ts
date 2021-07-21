@@ -8,6 +8,15 @@ import { CustomInspectFunction } from 'util';
 import models = require("./models")
 import peirce = require("./peirce_api_calls");
 
+let currentInterpretationNumber = 0;
+
+export const getCurrentInterpretationNumber = () : number => {
+    return currentInterpretationNumber;
+}
+
+export const setCurrentInterpretationNumber = (val : number) : void => {
+    currentInterpretationNumber = val;
+}
 
 export interface PeirceDb {
     terms: models.Term[];
@@ -245,11 +254,14 @@ const createPeirceConstructor = (annotationText: string, node_type: string, name
     
     const nextId = getNextId();
 
-    let fileName = '';
-    fileName = editor.document.uri.fsPath;
+    let fileName = peirce.getActivePeirceFile();
+    if (!fileName){
+        fileName = '';
+    }
+    // fileName = editor.document.uri.fsPath;
     const cons: models.Constructor = {
         name : name,
-        //fileName: fileName,
+        fileName: fileName,
         //text: annotationText,
         status: 'pending',
         id: nextId,
