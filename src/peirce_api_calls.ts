@@ -40,6 +40,7 @@ export interface PopulateAPIConstructorData{
 export interface PopulateAPIReponse {
     data:PopulateAPIData[];
     cdata:PopulateAPIConstructorData[];
+    adata:PopulateAPIData[];
 }
 
 export const populate = async (): Promise<void> => {
@@ -66,7 +67,7 @@ export const populate = async (): Promise<void> => {
         file: fileText,
         terms: terms,
     }
-    console.log(JSON.stringify(request));
+    //console.log(JSON.stringify(request));
     let login = {
         method: "POST",
         body: JSON.stringify(request),
@@ -79,18 +80,23 @@ export const populate = async (): Promise<void> => {
     const apiUrl = "http://0.0.0.0:8080/api/getState";
     const response = await fetch(apiUrl, login);
     const respdata : PopulateAPIReponse = await response.json();
+    console.log('RESP DATA')
+    console.log(response)
     let data = respdata.data;
     let cdata = respdata.cdata;
+    let adata = respdata.adata;
     console.log('ptingint data')
     console.log(data);
     console.log('printing cdata')
     console.log(cdata)
     let termsSummary = JSON.stringify(data); 
     peircedb.deleteFilesTerms(fileName);
+    peircedb.resetAllTerms(fileName);
     // to fix this, we need to have a well-defined JSON response object
     // and change data : any -> data : well-defined-object[]
-    
+    console.log('entering data loop')
     data.forEach(element => {
+        console.log(element.coords.begin.line+','+element.coords.end.line)
         let range = new vscode.Range(
             new vscode.Position(element.coords.begin.line, element.coords.begin.character), 
             new vscode.Position(element.coords.end.line, element.coords.end.character), 
@@ -106,6 +112,36 @@ export const populate = async (): Promise<void> => {
             // future functionality
             peircedb.addPeirceTerm(defaultInterp, element.node_type, element.error, editor, range);
     });
+
+    console.log('ADATA!!!')
+    console.log(adata)
+    console.log('ok well?')
+    
+    adata.forEach(element => {
+        console.log('adata??')
+        console.log(element)
+        console.log(element.coords.begin.line+','+element.coords.end.line)
+        if(element.coords.begin.line > 0 && element.coords.begin.character > 0 
+            && element.coords.end.line > 0 && element.coords.end.character > 0){
+            let range = new vscode.Range(
+                new vscode.Position(element.coords.begin.line, element.coords.begin.character), 
+                new vscode.Position(element.coords.end.line, element.coords.end.character), 
+            );
+            // Might be able to clean this up
+            // Set the vscode.editor.selection position,
+            const defaultInterp = "No interpretation provided";
+            if (editor){
+                // peircedb.addPeirceTerm(element.interp, element.node_type, element.error, editor, range);
+
+                // this might not be the best way to clear checked interps on repop, but it's the best I could figure out
+                // the previous way we were adding is left in in case we find bugs/it's better to have it the other way for
+                // future functionality
+                console.log('adding peirce all term')
+                peircedb.addPeirceAllTerm(defaultInterp, element.node_type, element.error, editor, range);
+            }
+        }
+    });
+
 
     cdata.forEach(element => {
         if (editor)
