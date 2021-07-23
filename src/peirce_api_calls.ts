@@ -261,7 +261,7 @@ export const populate = async (): Promise<void> => {
     // and change data : any -> data : well-defined-object[]
     
     // now that that's done, all we need to do is go until there are no new things to make API calls for XD
-    /*
+
     while (mergedSpaces.length > 0 || mergedConsTerms.length > 0){
         if (mergedSpaces.length == 0){
             // make the necessary calls for mergedConsTerms
@@ -314,6 +314,12 @@ export const populate = async (): Promise<void> => {
             }
         }
     }
+    /*
+    console.log("CHECKING THE STATE OF THIS MACHINE POST ATTEMPTING TO GET ALL THIS SHIT DONE");
+    const responsePost = await fetch(apiUrl, login);
+    const respDataPost : PopulateAPIReponse = await responsePost.json();
+    console.log("POST RESPONSE DATA");
+    console.log(respDataPost);
     */
     console.log('entering data loop')
     data.forEach(element => {
