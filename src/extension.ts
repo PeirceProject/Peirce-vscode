@@ -51,7 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
     // registers the populate command
     vscode.commands.registerCommand('code-annotation.populate', async () => {
         // delete below line if break-y
-        peirce.setActivePeircefile(vscode.window.activeTextEditor?.document.fileName);
+        // peirce.setActivePeircefile(vscode.window.activeTextEditor?.document.fileName);
         vscode.window.showInformationMessage("Populating...")
         peirce.populate();
     });

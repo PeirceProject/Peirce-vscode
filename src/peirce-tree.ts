@@ -1816,15 +1816,20 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
 
 
 	    const constructors = peircedb.getConstructors() || ([]);
+        let numFileConstructors = 0;
         console.log(constructors)
 	    for (let term in constructors) {
             //if (constructors[term].fileName != vscode.window.activeTextEditor?.document.fileName)
             //    continue;
+            if (constructors[term].fileName != fileName){
+                continue;
+            }
 	        const termItem = createConsTermItem(constructors[term]);
             this.data[1].addChild(termItem);
+            numFileConstructors += 1;
 	    }
         // same here
-	    this.data[1].label += ` (${constructors.length})`;
+	    this.data[1].label += ` (${numFileConstructors})`;
 
         const db = peircedb.getPeirceDb()
 
@@ -1837,8 +1842,13 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
             .concat(peircedb.getGeom3DSpaces() || []);
         console.log("spaces")
         console.log(spaces)
+        let numFileSpaces = 0;
 	    for (let s in spaces) {
             const space = spaces[s];
+            if (space.fileName != fileName){
+                continue;
+            }
+            numFileSpaces += 1;
             let termItem : TermItem;
             if (space.space == "Classical Time Coordinate Space"){
                 if (space.parent != null){
@@ -1879,7 +1889,7 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
             //const origin = space.origin;
             //this.data[1].addChild(termItem);
 	    }
-	    this.data[2].label += ` (${spaces.length})`;
+	    this.data[2].label += ` (${numFileSpaces})`;
 	}
 
 	removeItem(id: string | undefined): void {
