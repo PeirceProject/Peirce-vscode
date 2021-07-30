@@ -28,32 +28,50 @@ export interface PeirceDb {
     nextId: number;
 }
 
+let dbMap : Map<string, PeirceDb> = new Map();
+
 export const getPeirceDb = (): PeirceDb => {
+    const activePeirceFile = peirce.getActivePeirceFile();
     const annotationFile = getAnnotationFilePath();
     const rawdata = fs.readFileSync(annotationFile, 'utf8');
-    let annotations : PeirceDb = JSON.parse(rawdata);
-    annotations.terms = annotations.terms || [];
-    annotations.constructors = annotations.constructors || [];
-    annotations.time_coordinate_spaces = annotations.time_coordinate_spaces || [];
-    annotations.geom1d_coordinate_spaces = annotations.geom1d_coordinate_spaces || [];
-    annotations.geom3d_coordinate_spaces = annotations.geom3d_coordinate_spaces || [];
-    annotations.all_terms = annotations.all_terms || [];
-    //console.log('terms db: ')
-    //console.log(annotations)
+    let annotations : PeirceDb = JSON.parse('{"notes":[], "nextId":1, "time_coordinate_spaces":[], "geom1d_coordinate_spaces":[]}');
+    if (activePeirceFile){
+        annotations = JSON.parse(rawdata)[activePeirceFile];
+        if (annotations == undefined){
+            // if undefined, return an empty Peirce DB
+            return {
+                terms: [],
+                constructors: [],
+                time_coordinate_spaces: [],
+                geom1d_coordinate_spaces: [],
+                geom3d_coordinate_spaces: [],
+                all_terms: [],
+                nextId: 1
+            };
+        }
+        annotations.terms = annotations.terms || [];
+        annotations.constructors = annotations.constructors || [];
+        annotations.time_coordinate_spaces = annotations.time_coordinate_spaces || [];
+        annotations.geom1d_coordinate_spaces = annotations.geom1d_coordinate_spaces || [];
+        annotations.geom3d_coordinate_spaces = annotations.geom3d_coordinate_spaces || [];
+        annotations.all_terms = annotations.all_terms || [];
+        //console.log('terms db: ')
+        //console.log(annotations)
+    }
     return annotations;
 };
 
 export const getAllTerms = (): models.Term[] => {
-    return getPeirceDb().all_terms;
+    return getPeirceDb().all_terms || [];
 };
 
 
 export const getTerms = (): models.Term[] => {
-    return getPeirceDb().terms;
+    return getPeirceDb().terms || [];
 };
 
 export const getConstructors = (): models.Constructor[] => {
-    return getPeirceDb().constructors;
+    return getPeirceDb().constructors || [];
 }
 
 export const getTermFromId = (termId : string) : models.Term | null => {
@@ -168,8 +186,18 @@ export const getConstructorIndex = (cons : models.Constructor) :number => {
 export const saveDb = (db: models.PeirceDb) => {
     console.log('save this db...')
     console.log(db)
-    const data = JSON.stringify(db);
-    fs.writeFileSync(getAnnotationFilePath(), data);
+    // const data = JSON.stringify(db);
+    const activeFile = peirce.getActivePeirceFile();
+    if (activeFile){
+        let rawdata = fs.readFileSync(getAnnotationFilePath(), 'utf-8');
+        let data = JSON.parse(rawdata);
+        data[activeFile] = db;
+        console.log("NEW DATA");
+        console.log(data);
+        fs.writeFileSync(getAnnotationFilePath(), JSON.stringify(data));
+    }else {
+        console.log("No active Peirce file, something's wrong...");
+    }
     console.log('refreshing...')
     vscode.commands.executeCommand('code-annotation.refreshEntry');
 };

@@ -90,7 +90,6 @@ export const setDecorations = (): void => {
 
         console.log('SOURCE GET ALL TERMS')
         console.log(getAllTerms())
-
         getAllTerms().forEach( term => {
             const temprange : vscode.Range[] = [];
             const temp_error : boolean[] = [];

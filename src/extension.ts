@@ -128,7 +128,9 @@ export function activate(context: vscode.ExtensionContext) {
                 }
             }
             // if the above yielded nothing, return a null hover, as we don't want anything to appear
-            return null;
+            return {
+                contents: ["No interpr"]
+            };
         }
     })
 

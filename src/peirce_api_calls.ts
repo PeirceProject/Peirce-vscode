@@ -56,6 +56,9 @@ const mergeSpaces = (): models.Space[] =>{
     let time = peircedb.getTimeSpaces();
     let res : models.Space[] = [];
 
+    console.log(geom3d);
+    console.log(geom1d);
+    console.log(time);
     geom1d.forEach(element =>{
         if (element.fileName == getActivePeirceFile()) {
             res.push(element);   
@@ -86,6 +89,8 @@ const mergeSpaces = (): models.Space[] =>{
 // returns a list of all Constructors and Terms associated with the current file sorted by order created
 // those items w/ no interp are relegated to end of list
 const mergeConstructorsAndTerms = () : (models.Constructor | models.Term)[] => {
+    let preDb = peircedb.getPeirceDb();
+    peircedb.saveDb(preDb);
     let constructors = peircedb.getConstructors();
     let terms = peircedb.getTerms();
     let res : (models.Constructor | models.Term)[] = [];
@@ -208,6 +213,7 @@ export const populate = async (): Promise<void> => {
     let origFile = getActivePeirceFile();
     let newFile = vscode.window.activeTextEditor?.document.fileName;
     setActivePeircefile(newFile);
+    console.log(peircedb.getPeirceDb());
     if (vscode.window.activeTextEditor) {
         console.log("The open text file:")
         console.log(vscode.window.activeTextEditor.document)
