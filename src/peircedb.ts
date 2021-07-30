@@ -16,6 +16,8 @@ export interface PeirceDb {
     geom1d_coordinate_spaces: models.Geom1DCoordinateSpace[];
     geom3d_coordinate_spaces: models.Geom3DCoordinateSpace[];
     all_terms: models.Term[];
+    all_time_series: models.TimeSeries[];
+    all_time_series_values: models.TimeStamped[];
     nextId: number;
 }
 
@@ -29,6 +31,8 @@ export const getPeirceDb = (): PeirceDb => {
     annotations.geom1d_coordinate_spaces = annotations.geom1d_coordinate_spaces || [];
     annotations.geom3d_coordinate_spaces = annotations.geom3d_coordinate_spaces || [];
     annotations.all_terms = annotations.all_terms || [];
+    annotations.all_time_series = annotations.all_time_series || [];
+    annotations.all_time_series_values = annotations.all_time_series_values || [];
     //console.log('terms db: ')
     //console.log(annotations)
     return annotations;
@@ -87,6 +91,11 @@ export const getFileTerms = (): models.Term[] => {
             new_terms.push(term);
     });
     return new_terms;
+};
+
+export const getTimeSeries = (): models.TimeSeries[] => {
+    let db = getPeirceDb();
+    return db.all_time_series;
 };
 
 export const deleteFilesTerms = (fileName : string | undefined): void => {
@@ -156,7 +165,7 @@ export const getConstructorIndex = (cons : models.Constructor) :number => {
 };
 
 
-export const saveDb = (db: models.PeirceDb) => {
+export const saveDb = (db: PeirceDb) => {
     console.log('save this db...')
     console.log(db)
     const data = JSON.stringify(db);
@@ -234,13 +243,14 @@ const createTerm = (annotationText: string, fromSelection: boolean) => {
         status: 'pending',
         id: nextId,
         interpretation: null,
+        name: "",
         error: "Not checked",
         node_type: "Unknown"
     };
     return term;
 };
 
-const createPeirceTerm = (annotationText: string, node_type: string, error: string, editor : vscode.TextEditor, range : vscode.Range) => {
+const createPeirceTerm = (annotationText: string, node_type: string, error: string, editor : vscode.TextEditor, range : vscode.Range, name: string) => {
     const nextId = getNextId();
 
     let codeSnippet = '';
@@ -261,6 +271,7 @@ const createPeirceTerm = (annotationText: string, node_type: string, error: stri
         positionEnd: positionEnd,
         text: annotationText,
         codeSnippet: codeSnippet,
+        name: name,
         status: 'pending',
         id: nextId,
         interpretation: null,
@@ -366,18 +377,28 @@ const addConstructorToDb = (cons : models.Constructor) => {
     vscode.window.showInformationMessage('Annotation saved!');
 }
 
-export const addPeirceTerm = async (annotationText : string, type : string, error : string, editor : vscode.TextEditor, range : vscode.Range) => {
+const addTimeSeriesToDb = (ts: models.TimeSeries) => {
+    let db = getPeirceDb();
+    db.all_time_series = db.all_time_series || [];
+    db.all_time_series.push(ts);
+    db.nextId++;
+    saveDb(db)
+    vscode.window.showInformationMessage('Annotation saved!');
+}
+
+
+export const addPeirceTerm = async (annotationText : string, type : string, error : string, editor : vscode.TextEditor, range : vscode.Range, name: string) => {
     if (editor) {
-        addTermToDb(createPeirceTerm(annotationText, type, error, editor, range))
+        addTermToDb(createPeirceTerm(annotationText, type, error, editor, range, name))
     }
     setDecorations();
 };
 
 export const addPeirceAllTerm = async (annotationText : string, type : string, error : string, editor : vscode.TextEditor, range : vscode.Range) => {
     if (editor) {
-        addAllTermToDb(createPeirceTerm(annotationText, type, error, editor, range))
+        addAllTermToDb(createPeirceTerm(annotationText, type, error, editor, range,""))
     }
-    //setDecorations();
+    setDecorations();
 };
 
 export const addPeirceConstructor = async (annotationText : string, type : string, name: string, editor : vscode.TextEditor) => {
