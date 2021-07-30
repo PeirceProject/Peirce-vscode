@@ -17,6 +17,7 @@ import { privateEncrypt } from 'crypto';
 import { cpuUsage } from 'process';
 import { createReadStream } from 'fs';
 import { cursorTo } from 'readline';
+import { EINPROGRESS } from 'constants';
 
 const getIconPathFromType = (type: string, theme: string): string => {
     return path.join(__filename, '..', '..', 'resources', theme, type.toLowerCase() + '.svg');
@@ -815,6 +816,7 @@ export class InfoView {
                 space: time_space,
                 value: [+value],
                 node_type: "term.node_type",
+                order_created: currInterpretationNumber,
             }
 
 
@@ -895,6 +897,7 @@ export class InfoView {
                 space: space,
                 value: [+ortvalue0,+ortvalue1,+ortvalue2,+ortvalue3,+ortvalue4,+ortvalue5,+ortvalue6,+ortvalue7,+ortvalue8,+posvalue0,+posvalue1,+posvalue2],
                 node_type: "term.node_type",
+                order_created: currInterpretationNumber+1,
             }
 
             let interpretation : models.TimeStampedPose3D = {
@@ -904,9 +907,10 @@ export class InfoView {
                 timestamp: time_,
                 value: pose3d_,
                 series_name: null,
-                node_type: "term.node_type"
+                node_type: "term.node_type",
+                order_created: currInterpretationNumber+2,
             }
-
+            peircedb.setCurrentInterpretationNumber(currInterpretationNumber+3);
             return interpretation
         }
         else if(interp.label == "TimeStamped Geom3D Transform"){
@@ -939,6 +943,7 @@ export class InfoView {
                 space: time_space,
                 value: [+value],
                 node_type: "term.node_type",
+                order_created: currInterpretationNumber,
             }
 
             let spaces = peircedb.getGeom3DSpaces();
@@ -974,6 +979,7 @@ export class InfoView {
                 domain: domain,
                 codomain: codomain,
                 node_type: "term.node_type",
+                order_created: currInterpretationNumber+1,
             }
 
             let interpretation : models.TimeStampedGeom3DTransform = {
@@ -983,8 +989,10 @@ export class InfoView {
                 timestamp: time_,
                 value: geom3d_transform,
                 series_name: null,
-                node_type: "term.node_type"
+                node_type: "term.node_type",
+                order_created: currInterpretationNumber+2,
             }
+            peircedb.setCurrentInterpretationNumber(currInterpretationNumber+3);
 
             return interpretation
         }
@@ -1025,9 +1033,10 @@ export class InfoView {
                     interp_type: interp.label,
                     node_type: "term.node_type",
                     time_value: null,
-                    time_series: time_series
+                    time_series: time_series,
+                    order_created: currInterpretationNumber,
                 }
-
+                peircedb.setCurrentInterpretationNumber(currInterpretationNumber+1);
                 return interpretation
             }
             else{
@@ -1045,9 +1054,10 @@ export class InfoView {
                     interp_type: interp.label,
                     node_type: "term.node_type",
                     time_value: value,
-                    time_series: time_series
+                    time_series: time_series,
+                    order_created: currInterpretationNumber,
                 }
-
+                peircedb.setCurrentInterpretationNumber(currInterpretationNumber+1);
                 return interpretation
             }
         }
@@ -1090,8 +1100,10 @@ export class InfoView {
                     time_space: time_space,
                     space: space,
                     values:[],
-                    node_type: "term.node_type"
+                    node_type: "term.node_type",
+                    order_created: currInterpretationNumber,
                 }
+                peircedb.setCurrentInterpretationNumber(currInterpretationNumber+1);
 
                 return interpretation
             }
@@ -1133,9 +1145,10 @@ export class InfoView {
                     domain: domain,
                     codomain: codomain,
                     values:[],
-                    node_type: "term.node_type"
+                    node_type: "term.node_type",
+                    order_created: currInterpretationNumber,
                 }
-
+                peircedb.setCurrentInterpretationNumber(currInterpretationNumber+1);
                 return interpretation
             }
             else
@@ -1348,6 +1361,7 @@ export class InfoView {
     }
 
     async addTimeSeriesValue(){
+        let currInterpNumber = peircedb.getCurrentInterpretationNumber();
         let all_series = peircedb.getTimeSeries()
         let options = all_series.map((ele) => {
             return { label:ele.name};
@@ -1387,6 +1401,7 @@ export class InfoView {
                 space: time_space,
                 value: [+value],
                 node_type: "term.node_type",
+                order_created: currInterpNumber,
             }
 
             let pose3d_series = time_series as models.Pose3DTimeSeries
@@ -1452,6 +1467,7 @@ export class InfoView {
                 space: space,
                 value: [+ortvalue0,+ortvalue1,+ortvalue2,+ortvalue3,+ortvalue4,+ortvalue5,+ortvalue6,+ortvalue7,+ortvalue8,+posvalue0,+posvalue1,+posvalue2],
                 node_type: "term.node_type",
+                order_created: currInterpNumber+1,
             }
 
             let interpretation : models.TimeStampedPose3D = {
@@ -1461,7 +1477,8 @@ export class InfoView {
                 timestamp: time_,
                 value: pose3d_,
                 series_name:time_series.name,
-                node_type: "term.node_type"
+                node_type: "term.node_type",
+                order_created: currInterpNumber+2,
             }
 
             let resp : boolean = await this.addTimeSeriesValueRequest(time_series, interpretation)
@@ -1469,6 +1486,7 @@ export class InfoView {
                 console.log("FAILED TO SAVE SPACE TO PEIRCE")
                 return
             }
+            peircedb.setCurrentInterpretationNumber(currInterpNumber+3);
         }
         else if(time_series.interp_type == "Geom3D Transform Time Series"){
 
@@ -1484,6 +1502,7 @@ export class InfoView {
                 node_type: "term.node_type",
                 space: time_space,
                 value: [+value],
+                order_created: currInterpNumber,
             }
 
             let geom3d_transform_series = time_series as models.Geom3DTransformTimeSeries
@@ -1497,7 +1516,8 @@ export class InfoView {
                 interp_type: "Time",
                 node_type: "term.node_type",
                 domain:domain,
-                codomain:codomain
+                codomain:codomain,
+                order_created: currInterpNumber+1,
             }
 
             let interpretation : models.TimeStampedGeom3DTransform = {
@@ -1507,7 +1527,8 @@ export class InfoView {
                 timestamp: time_,
                 value:ivalue,
                 series_name:time_series.name,
-                node_type: "term.node_type"
+                node_type: "term.node_type",
+                order_created: currInterpNumber+2
             }
 
             console.log('attempting val req...')
@@ -1516,6 +1537,7 @@ export class InfoView {
                 console.log("FAILED TO SAVE TSV TO PEIRCE")
                 return
             }
+            peircedb.setCurrentInterpretationNumber(currInterpNumber+3);
         }
         else{
             console.log("UNMATCHED?")
@@ -1553,6 +1575,7 @@ export class InfoView {
 
 
     async addTimeSeries(){
+        let currInterpNumber = peircedb.getCurrentInterpretationNumber();
         const series_type = await vscode.window.showQuickPick(
                 [
                     { label : "Pose3D Time Series" },
@@ -1600,7 +1623,8 @@ export class InfoView {
                 time_space: time_space,
                 space: space,
                 values:[],
-                node_type: "term.node_type"
+                node_type: "term.node_type",
+                order_created: currInterpNumber,
             }
 
             let resp : boolean = await this.addTimeSeriesRequest(interpretation)
@@ -1613,6 +1637,7 @@ export class InfoView {
             console.log('SAVIN...')
             peircedb.saveDb(db);
             console.log('FINSAVE...')
+            peircedb.setCurrentInterpretationNumber(currInterpNumber+1);
         }
         else if(series_type.label == "Geom3D Transform Time Series"){
             let time_spaces = peircedb.getTimeSpaces();
@@ -1652,7 +1677,8 @@ export class InfoView {
                 domain: domain,
                 codomain: codomain,
                 values:[],
-                node_type: "term.node_type"
+                node_type: "term.node_type",
+                order_created: currInterpNumber,
             }
 
             let resp : boolean = await this.addTimeSeriesRequest(interpretation)
@@ -1665,6 +1691,7 @@ export class InfoView {
             console.log('SAVIN...')
             peircedb.saveDb(db);
             console.log('FINSAVE...')
+            peircedb.setCurrentInterpretationNumber(currInterpNumber+1);
         }
 
         let dbb = peircedb.getPeirceDb();
@@ -2649,7 +2676,7 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
             //const origin = space.origin;
             //this.data[1].addChild(termItem);
 	    }
-	    this.data[2].label += ` (${numFileSpaces})`;
+	    this.data[2].label += ` (${spaces.length})`;
 
         const time_series =
             (peircedb.getTimeSeries() || [])

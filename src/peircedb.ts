@@ -48,6 +48,8 @@ export const getPeirceDb = (): PeirceDb => {
                 geom1d_coordinate_spaces: [],
                 geom3d_coordinate_spaces: [],
                 all_terms: [],
+                all_time_series: [],
+                all_time_series_values: [],
                 nextId: 1
             };
         }
@@ -57,6 +59,8 @@ export const getPeirceDb = (): PeirceDb => {
         annotations.geom1d_coordinate_spaces = annotations.geom1d_coordinate_spaces || [];
         annotations.geom3d_coordinate_spaces = annotations.geom3d_coordinate_spaces || [];
         annotations.all_terms = annotations.all_terms || [];
+        annotations.all_time_series = annotations.all_time_series || [];
+        annotations.all_time_series_values = annotations.all_time_series_values || [];
         //console.log('terms db: ')
         //console.log(annotations)
     }

@@ -391,7 +391,7 @@ export const populate = async (): Promise<void> => {
                 // this might not be the best way to clear checked interps on repop, but it's the best I could figure out
                 // the previous way we were adding is left in in case we find bugs/it's better to have it the other way for
                 // future functionality
-                peircedb.addPeirceTerm(defaultInterp, element.node_type, element.error, editor, range);
+                peircedb.addPeirceTerm(defaultInterp, element.node_type, element.error, editor, range, element.name);
         }
     });
     cdata.forEach(element => {
