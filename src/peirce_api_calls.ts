@@ -34,6 +34,7 @@ export interface PopulateAPIData{
     interp: string;
     node_type: string;
     error: string;
+    name: string;
 }
 
 export interface PopulateAPIConstructorData{

@@ -121,8 +121,18 @@ export class InfoView {
             { label: "Orientation3D"},
             { label: "Rotation3D"},
             { label: "Pose3D"},
-            { label: "Geom3D Transform"}
+            { label: "Geom3D Transform"},
+            { label: "TimeStamped Pose3D"},
+            { label: "TimeStamped Geom3D Transform"},
+            { label: "TimeSeries Value"}
         ];
+
+        if(termIsIdentifier){
+            interpretations.push({label : "Create a Time Series"})
+        }
+
+
+
         const interp = await vscode.window.showQuickPick(interpretations);
         if (interp === undefined) {
             return null
@@ -775,6 +785,362 @@ export class InfoView {
             }
             return interpretation
         }
+        else if(interp.label == "TimeStamped Pose3D"){
+            
+            let time_spaces = peircedb.getTimeSpaces();
+            console.log(time_spaces);
+            const time_space = await vscode.window.showQuickPick(time_spaces, {
+                placeHolder: 'Select a coordinate space'
+            });
+            console.log("space quick pick")
+            console.log(time_space);
+            if (time_space === undefined) {
+                return null;
+            }
+
+            let value = await vscode.window.showInputBox({ placeHolder: 'Value?' });
+            if (value === undefined || Number(value) == NaN)  {
+                return null;
+            }
+
+            let time_label = `${name} ${interp.label}(${time_space.label},${value})`
+            if (termIsIdentifier) {
+                time_label = `${interp.label}(${time_space.label},${value})`
+            }
+
+            let time_ : models.Time = {
+                label: time_label,
+                name: name,
+                interp_type: interp.label,
+                space: time_space,
+                value: [+value],
+                node_type: "term.node_type",
+            }
+
+
+            let spaces = peircedb.getGeom3DSpaces();
+            console.log(spaces);
+            let i = 0;
+            const space = await vscode.window.showQuickPick(spaces, {
+                placeHolder: 'Select a coordinate space'
+            });
+            console.log("space quick pick")
+            console.log(space);
+            if (space === undefined) {
+                return null;
+            }
+
+
+            let ortvalue0 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 0?' });
+            if (ortvalue0 === undefined || Number(ortvalue0) == NaN)  {
+                return null;
+            }
+            let ortvalue1 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 1?' });
+            if (ortvalue1 === undefined || Number(ortvalue1) == NaN)  {
+                return null;
+            }
+            let ortvalue2 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 2?' });
+            if (ortvalue2 === undefined || Number(ortvalue2) == NaN)  {
+                return null;
+            }
+
+            let ortvalue3 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 3?' });
+            if (ortvalue3 === undefined || Number(ortvalue3) == NaN)  {
+                return null;
+            }
+            let ortvalue4 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 4?' });
+            if (ortvalue4 === undefined || Number(ortvalue4) == NaN)  {
+                return null;
+            }
+            let ortvalue5 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 5?' });
+            if (ortvalue5 === undefined || Number(ortvalue5) == NaN)  {
+                return null;
+            }
+
+            let ortvalue6 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 6?' });
+            if (ortvalue6 === undefined || Number(ortvalue6) == NaN)  {
+                return null;
+            }
+            let ortvalue7 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 7?' });
+            if (ortvalue7 === undefined || Number(ortvalue7) == NaN)  {
+                return null;
+            }
+            let ortvalue8 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 8?' });
+            if (ortvalue8 === undefined || Number(ortvalue8) == NaN)  {
+                return null;
+            }
+
+            let posvalue0 = await vscode.window.showInputBox({ placeHolder: 'Position Value at index 0?' });
+            if (posvalue0 === undefined || Number(posvalue0) == NaN)  {
+                return null;
+            }
+            let posvalue1 = await vscode.window.showInputBox({ placeHolder: 'Position Value at index 1?' });
+            if (posvalue1 === undefined || Number(posvalue1) == NaN)  {
+                return null;
+            }
+            let posvalue2 = await vscode.window.showInputBox({ placeHolder: 'Position Value at index 2?' });
+            if (posvalue2 === undefined || Number(posvalue2) == NaN)  {
+                return null;
+            }
+
+            let label = `${name} ${interp.label}(${space.label},orientation,position)`
+            if (termIsIdentifier) {
+                label = `${interp.label}(${space.label},orientation,position)`
+            }
+
+            let pose3d_ : models.Pose3D = {
+                label: label,
+                name: name,
+                interp_type: interp.label,
+                space: space,
+                value: [+ortvalue0,+ortvalue1,+ortvalue2,+ortvalue3,+ortvalue4,+ortvalue5,+ortvalue6,+ortvalue7,+ortvalue8,+posvalue0,+posvalue1,+posvalue2],
+                node_type: "term.node_type",
+            }
+
+            let interpretation : models.TimeStampedPose3D = {
+                label: "",
+                name: name,
+                interp_type: interp.label,
+                timestamp: time_,
+                value: pose3d_,
+                series_name: null,
+                node_type: "term.node_type"
+            }
+
+            return interpretation
+        }
+        else if(interp.label == "TimeStamped Geom3D Transform"){
+
+            let time_spaces = peircedb.getTimeSpaces();
+            console.log(time_spaces);
+            const time_space = await vscode.window.showQuickPick(time_spaces, {
+                placeHolder: 'Select a coordinate space'
+            });
+            console.log("space quick pick")
+            console.log(time_space);
+            if (time_space === undefined) {
+                return null;
+            }
+
+            let value = await vscode.window.showInputBox({ placeHolder: 'Value?' });
+            if (value === undefined || Number(value) == NaN)  {
+                return null;
+            }
+
+            let time_label = `${name} ${interp.label}(${time_space.label},${value})`
+            if (termIsIdentifier) {
+                time_label = `${interp.label}(${time_space.label},${value})`
+            }
+
+            let time_ : models.Time = {
+                label: time_label,
+                name: name,
+                interp_type: interp.label,
+                space: time_space,
+                value: [+value],
+                node_type: "term.node_type",
+            }
+
+            let spaces = peircedb.getGeom3DSpaces();
+            console.log(spaces);
+            let i = 0;
+            const domain = await vscode.window.showQuickPick(spaces, {
+                placeHolder: 'Select Domain Space'
+            });
+            console.log("space quick pick")
+            console.log(domain);
+            if (domain === undefined) {
+                return null;
+            }
+            console.log(spaces);
+            const codomain = await vscode.window.showQuickPick(spaces, {
+                placeHolder: 'Select Codomain Space'
+            });
+            console.log("space quick pick")
+            console.log(codomain);
+            if (codomain === undefined) {
+                return null;
+            }
+            let label = `${name} ${interp.label}(${domain.label},${codomain.label})`
+            if (termIsIdentifier) {
+                label = `${interp.label}(${domain.label},${codomain.label})`
+            }
+
+
+            let geom3d_transform : models.Geom3DTransform = {
+                label: label,
+                name: name,
+                interp_type: "Pose3D",
+                domain: domain,
+                codomain: codomain,
+                node_type: "term.node_type",
+            }
+
+            let interpretation : models.TimeStampedGeom3DTransform = {
+                label: "",
+                name: name,
+                interp_type: interp.label,
+                timestamp: time_,
+                value: geom3d_transform,
+                series_name: null,
+                node_type: "term.node_type"
+            }
+
+            return interpretation
+        }
+        else if(interp.label == "TimeSeries Value"){
+            let all_series = peircedb.getTimeSeries()
+            let options = all_series.map((ele) => {
+                return { label:ele.name};
+            })
+            let chosen_series = await vscode.window.showQuickPick(
+                options
+            );
+            if(chosen_series == null)
+                return null
+
+            
+            let time_series = all_series[0]
+
+            for(let ts in all_series){
+                time_series = all_series[ts]
+                if(time_series.name==chosen_series.label)
+                    break
+            }
+            
+            let latest_or_value = await vscode.window.showQuickPick(
+                [
+                    {label:"Get Latest Value from Time Series"},
+                    {label:"Provide Specific Time"}
+                ]
+            );
+
+            if(latest_or_value == null)
+                return null
+
+            if(latest_or_value.label == "Get Latest Value from Time Series"){
+                let interpretation : models.SeriesIndex = {
+                    label: "",
+                    name: "",
+                    interp_type: interp.label,
+                    node_type: "term.node_type",
+                    time_value: null,
+                    time_series: time_series
+                }
+
+                return interpretation
+            }
+            else{
+                
+                let value0 = await vscode.window.showInputBox({ placeHolder: 'Enter value of Time Series Index : ' });
+                if (value0 === undefined || Number(value0) == NaN)  {
+                    return null;
+                }
+
+                let value : number = Number(value0)
+
+                let interpretation : models.SeriesIndex = {
+                    label: "",
+                    name: "",
+                    interp_type: interp.label,
+                    node_type: "term.node_type",
+                    time_value: value,
+                    time_series: time_series
+                }
+
+                return interpretation
+            }
+        }
+        else if(interp.label == "Create a Time Series"){
+            const series_type = await vscode.window.showQuickPick(
+                [
+                    { label : "Pose3D Time Series" },
+                    { label : "Geom3D Transform Time Series" }
+                ], {
+                placeHolder: 'Select Domain Space'
+            });
+            if(series_type == undefined){
+                return null;
+            }
+            else if(series_type.label == "Pose3D Time Series"){
+
+                let time_spaces = peircedb.getTimeSpaces();
+                console.log(time_spaces);
+                const time_space = await vscode.window.showQuickPick(time_spaces, {
+                    placeHolder: 'Select a coordinate space'
+                });
+
+                if(time_space == null)
+                    return null
+
+                let spaces = peircedb.getGeom3DSpaces();
+                console.log(spaces);
+                let i = 0;
+                const space = await vscode.window.showQuickPick(spaces, {
+                    placeHolder: 'Select a coordinate space'
+                });
+
+                if(space == null)
+                    return null
+                
+                let interpretation : models.Pose3DTimeSeries = {
+                    label: "",
+                    name: "",
+                    interp_type: series_type.label,
+                    time_space: time_space,
+                    space: space,
+                    values:[],
+                    node_type: "term.node_type"
+                }
+
+                return interpretation
+            }
+            else if(series_type.label == "Geom3D Transform Time Series"){
+                let time_spaces = peircedb.getTimeSpaces();
+                console.log(time_spaces);
+                const time_space = await vscode.window.showQuickPick(time_spaces, {
+                    placeHolder: 'Select a coordinate space'
+                });
+
+                if(time_space == null)
+                    return null
+
+                let spaces = peircedb.getGeom3DSpaces();
+
+                const domain = await vscode.window.showQuickPick(spaces, {
+                    placeHolder: 'Select Domain Space'
+                });
+                console.log("space quick pick")
+                console.log(domain);
+                if (domain === undefined) {
+                    return null;
+                }
+                console.log(spaces);
+                const codomain = await vscode.window.showQuickPick(spaces, {
+                    placeHolder: 'Select Codomain Space'
+                });
+                console.log("space quick pick")
+                console.log(codomain);
+                if (codomain === undefined) {
+                    return null;
+                }
+                
+                let interpretation : models.Geom3DTransformTimeSeries = {
+                    label: "",
+                    name: "",
+                    interp_type: series_type.label,
+                    time_space: time_space,
+                    domain: domain,
+                    codomain: codomain,
+                    values:[],
+                    node_type: "term.node_type"
+                }
+
+                return interpretation
+            }
+            else
+                return null
+        }
         else return null;
         
     }
@@ -821,6 +1187,8 @@ export class InfoView {
                 if(interpretation === null){}
                 else{
                     interpretation.node_type = term_.node_type
+                    if(termIsIdentifier)
+                        interpretation.name = term_.name
                     term_.interpretation = interpretation
                     //saveTerm(term_)
                     console.log('attempting api term save...')
@@ -828,6 +1196,15 @@ export class InfoView {
                     if(result){
                         peircedb.saveTerm(term_)
                         console.log("success term")
+
+                        
+                        if(interpretation.interp_type == 'Pose3D Time Series' 
+                            || interpretation.interp_type == "Geom3D Transform Time Series"){
+                            let db = peircedb.getPeirceDb()
+                            db.all_time_series.push(interpretation as models.TimeSeries);
+                            peircedb.saveDb(db)
+                            
+                        }
                     }
                     else{
                         console.log("fail term")
@@ -928,6 +1305,7 @@ export class InfoView {
         setDecorations();
     }
 
+
     async addSpaceRequest(space_:models.Space) : Promise<boolean> {
         console.log('sending space')
         let request = {
@@ -954,7 +1332,375 @@ export class InfoView {
         return data.success
         
     }
+
+    async addTimeSeriesOrValue() {
+        
+        let seriesorvalue = await vscode.window.showQuickPick(
+            [{label:"Time Series"},{label:"Add Value to Existing Time Series"}]
+        );
+
+        if(seriesorvalue == null)
+            return
+        else if(seriesorvalue.label=="Time Series")
+            await this.addTimeSeries()
+        else
+            await this.addTimeSeriesValue()
+    }
+
+    async addTimeSeriesValue(){
+        let all_series = peircedb.getTimeSeries()
+        let options = all_series.map((ele) => {
+            return { label:ele.name};
+        })
+        let chosen_series = await vscode.window.showQuickPick(
+            options
+        );
+        if(chosen_series == null)
+            return null
+
+        console.log(chosen_series)
+        let time_series = all_series[0]
+
+        let ts_idx = ''
+        for(let ts in all_series){
+            time_series = all_series[ts]
+            if(time_series.name==chosen_series.label){
+                ts_idx = ts
+                break
+            }
+        }
+        console.log(time_series)
+
+        let time_space = time_series.time_space
+
+        if(time_series.interp_type == "Pose3D Time Series"){
+
+            let value = await vscode.window.showInputBox({ placeHolder: 'Time of Value?' });
+            if (value === undefined || Number(value) == NaN)  {
+                return null;
+            }
+
+            let time_ : models.Time = {
+                label: "",
+                name: "",
+                interp_type: "Time",
+                space: time_space,
+                value: [+value],
+                node_type: "term.node_type",
+            }
+
+            let pose3d_series = time_series as models.Pose3DTimeSeries
+
+            let space = pose3d_series.space
+
+            let ortvalue0 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 0?' });
+            if (ortvalue0 === undefined || Number(ortvalue0) == NaN)  {
+                return null;
+            }
+            let ortvalue1 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 1?' });
+            if (ortvalue1 === undefined || Number(ortvalue1) == NaN)  {
+                return null;
+            }
+            let ortvalue2 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 2?' });
+            if (ortvalue2 === undefined || Number(ortvalue2) == NaN)  {
+                return null;
+            }
+
+            let ortvalue3 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 3?' });
+            if (ortvalue3 === undefined || Number(ortvalue3) == NaN)  {
+                return null;
+            }
+            let ortvalue4 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 4?' });
+            if (ortvalue4 === undefined || Number(ortvalue4) == NaN)  {
+                return null;
+            }
+            let ortvalue5 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 5?' });
+            if (ortvalue5 === undefined || Number(ortvalue5) == NaN)  {
+                return null;
+            }
+
+            let ortvalue6 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 6?' });
+            if (ortvalue6 === undefined || Number(ortvalue6) == NaN)  {
+                return null;
+            }
+            let ortvalue7 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 7?' });
+            if (ortvalue7 === undefined || Number(ortvalue7) == NaN)  {
+                return null;
+            }
+            let ortvalue8 = await vscode.window.showInputBox({ placeHolder: 'Orientation Value at index 8?' });
+            if (ortvalue8 === undefined || Number(ortvalue8) == NaN)  {
+                return null;
+            }
+
+            let posvalue0 = await vscode.window.showInputBox({ placeHolder: 'Position Value at index 0?' });
+            if (posvalue0 === undefined || Number(posvalue0) == NaN)  {
+                return null;
+            }
+            let posvalue1 = await vscode.window.showInputBox({ placeHolder: 'Position Value at index 1?' });
+            if (posvalue1 === undefined || Number(posvalue1) == NaN)  {
+                return null;
+            }
+            let posvalue2 = await vscode.window.showInputBox({ placeHolder: 'Position Value at index 2?' });
+            if (posvalue2 === undefined || Number(posvalue2) == NaN)  {
+                return null;
+            }
+
+            let pose3d_ : models.Pose3D = {
+                label: "",
+                name: "",
+                interp_type: "Pose3D",
+                space: space,
+                value: [+ortvalue0,+ortvalue1,+ortvalue2,+ortvalue3,+ortvalue4,+ortvalue5,+ortvalue6,+ortvalue7,+ortvalue8,+posvalue0,+posvalue1,+posvalue2],
+                node_type: "term.node_type",
+            }
+
+            let interpretation : models.TimeStampedPose3D = {
+                label: "",
+                name: "",
+                interp_type: "TimeStamped Pose3D",
+                timestamp: time_,
+                value: pose3d_,
+                series_name:time_series.name,
+                node_type: "term.node_type"
+            }
+
+            let resp : boolean = await this.addTimeSeriesValueRequest(time_series, interpretation)
+            if(!resp){
+                console.log("FAILED TO SAVE SPACE TO PEIRCE")
+                return
+            }
+        }
+        else if(time_series.interp_type == "Geom3D Transform Time Series"){
+
+            let value = await vscode.window.showInputBox({ placeHolder: 'Time of Value?' });
+            if (value === undefined || Number(value) == NaN)  {
+                return null;
+            }
+
+            let time_ : models.Time = {
+                label: "",
+                name: "",
+                interp_type: "Time",
+                node_type: "term.node_type",
+                space: time_space,
+                value: [+value],
+            }
+
+            let geom3d_transform_series = time_series as models.Geom3DTransformTimeSeries
+
+            let domain = geom3d_transform_series.domain
+            let codomain = geom3d_transform_series.codomain
+
+            let ivalue:models.Geom3DTransform = {
+                label: "",
+                name: "",
+                interp_type: "Time",
+                node_type: "term.node_type",
+                domain:domain,
+                codomain:codomain
+            }
+
+            let interpretation : models.TimeStampedGeom3DTransform = {
+                label: "",
+                name: "",
+                interp_type: "TimeStamped Geom3D Transform",
+                timestamp: time_,
+                value:ivalue,
+                series_name:time_series.name,
+                node_type: "term.node_type"
+            }
+
+            console.log('attempting val req...')
+            let resp : boolean = await this.addTimeSeriesValueRequest(time_series, interpretation)
+            if(!resp){
+                console.log("FAILED TO SAVE TSV TO PEIRCE")
+                return
+            }
+        }
+        else{
+            console.log("UNMATCHED?")
+        }
+
+    };
     
+    async addTimeSeriesValueRequest(time_series: models.TimeSeries, value: models.Interpretation) : Promise<boolean> {
+        console.log('sending value')
+        let request = {
+            interpretation:value
+        }
+        console.log('SENDING ADD TIME SERIES VALUE REQUEST')
+        console.log(request)
+        console.log(JSON.stringify(request));
+        let login = {
+            method: "POST",
+            body: JSON.stringify(request),
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+        };
+        const apiUrl = "http://0.0.0.0:8080/api/addValueToTimeSeries";
+        console.log('fetching???')
+        const response = await fetch(apiUrl, login);
+        console.log('response??')
+        console.log(response)
+        const data : models.SuccessResponse = await response.json();
+        console.log('returning...')
+        return data.success
+
+    };
+
+
+    async addTimeSeries(){
+        const series_type = await vscode.window.showQuickPick(
+                [
+                    { label : "Pose3D Time Series" },
+                    { label : "Geom3D Transform Time Series" }
+                ], {
+                placeHolder: 'Select Domain Space'
+        });
+        if(series_type == undefined){
+            return
+        }
+
+        
+        let pickedName = await vscode.window.showInputBox({ placeHolder: 'Name of interpretation?' });
+        if (pickedName === undefined || pickedName == "" || pickedName == null)  {
+            this.updatePreview();
+            return
+        }
+        let name : string = pickedName
+
+        if(series_type.label == "Pose3D Time Series"){
+
+            let time_spaces = peircedb.getTimeSpaces();
+            console.log(time_spaces);
+            const time_space = await vscode.window.showQuickPick(time_spaces, {
+                placeHolder: 'Select a coordinate space'
+            });
+
+            if(time_space == null)
+                return
+
+            let spaces = peircedb.getGeom3DSpaces();
+            console.log(spaces);
+            let i = 0;
+            const space = await vscode.window.showQuickPick(spaces, {
+                placeHolder: 'Select a coordinate space'
+            });
+
+            if(space == null)
+                return null
+            
+            let interpretation : models.Pose3DTimeSeries = {
+                label: "",
+                name: pickedName,
+                interp_type: series_type.label,
+                time_space: time_space,
+                space: space,
+                values:[],
+                node_type: "term.node_type"
+            }
+
+            let resp : boolean = await this.addTimeSeriesRequest(interpretation)
+            if(!resp){
+                console.log("FAILED TO SAVE SPACE TO PEIRCE")
+                return
+            }
+            let db = peircedb.getPeirceDb();
+            db.all_time_series.push(interpretation);
+            console.log('SAVIN...')
+            peircedb.saveDb(db);
+            console.log('FINSAVE...')
+        }
+        else if(series_type.label == "Geom3D Transform Time Series"){
+            let time_spaces = peircedb.getTimeSpaces();
+            console.log(time_spaces);
+            const time_space = await vscode.window.showQuickPick(time_spaces, {
+                placeHolder: 'Select a coordinate space'
+            });
+
+            if(time_space == null)
+                return null
+
+            let spaces = peircedb.getGeom3DSpaces();
+
+            const domain = await vscode.window.showQuickPick(spaces, {
+                placeHolder: 'Select Domain Space'
+            });
+            console.log("space quick pick")
+            console.log(domain);
+            if (domain === undefined) {
+                return null;
+            }
+            console.log(spaces);
+            const codomain = await vscode.window.showQuickPick(spaces, {
+                placeHolder: 'Select Codomain Space'
+            });
+            console.log("space quick pick")
+            console.log(codomain);
+            if (codomain === undefined) {
+                return null;
+            }
+            
+            let interpretation : models.Geom3DTransformTimeSeries = {
+                label: "",
+                name: pickedName,
+                interp_type: series_type.label,
+                time_space: time_space,
+                domain: domain,
+                codomain: codomain,
+                values:[],
+                node_type: "term.node_type"
+            }
+
+            let resp : boolean = await this.addTimeSeriesRequest(interpretation)
+            if(!resp){
+                console.log("FAILED TO SAVE SPACE TO PEIRCE")
+                return
+            }
+            let db = peircedb.getPeirceDb();
+            db.all_time_series.push(interpretation);
+            console.log('SAVIN...')
+            peircedb.saveDb(db);
+            console.log('FINSAVE...')
+        }
+
+        let dbb = peircedb.getPeirceDb();
+        console.log('TIME SERIES??')
+        console.log(dbb.all_time_series)
+    };
+
+
+    
+    async addTimeSeriesRequest(time_series: models.TimeSeries) : Promise<boolean> {
+        console.log('sending space')
+        let request = {
+            time_series:time_series
+        }
+        console.log('SENDING CREATE TIME SERIES REQUEST')
+        console.log(request)
+        console.log(JSON.stringify(request));
+        let login = {
+            method: "POST",
+            body: JSON.stringify(request),
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+        };
+        const apiUrl = "http://0.0.0.0:8080/api/createTimeSeries";
+        const response = await fetch(apiUrl, login);
+        console.log('response??')
+        console.log(response)
+        const data : models.SuccessResponse = await response.json();
+        console.log('returning...')
+        return data.success
+
+    };
+
     async addTermInterpretationRequest(term: models.Term) : Promise <boolean> {
         console.log('sending term')
         let request = {
@@ -1312,8 +2058,17 @@ export class InfoView {
                 { label: "Geom1D Transform"},
                 { label: "Displacement3D"},
                 { label: "Position3D"},
-                { label: "Geom3D Transform"}
+                { label: "Geom3D Transform"},
+                { label: "TimeStamped Pose3D"},
+                { label: "TimeStamped Geom3D Transform"}
             ];
+
+            if(termIsIdentifier){
+                interpretations.push(
+                    { label: "Create a Time Series"}
+                );
+            }
+
             const interp = await vscode.window.showQuickPick(interpretations);
             if (interp === undefined) {
                 hover_index++;
@@ -1775,6 +2530,10 @@ export class TreeActions {
         console.log('RUNNING IV ADD SPACE')
         this.iv.addSpace()
     }
+    addTimeSeriesOrValue():void{
+        console.log('RUNNING IV ADD TS');
+        this.iv.addTimeSeriesOrValue()
+    }
 
 }
 export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
@@ -1794,7 +2553,8 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
 	    this.data = [
             new TermItem('Table of Terms', undefined, undefined, '$menu-pending'),
             new TermItem('Constructors', undefined, undefined, '$menu-pending'),
-            new TermItem('Spaces', undefined, undefined, '$Space')
+            new TermItem('Spaces', undefined, undefined, '$Space'),
+            new TermItem('Time Series', undefined, undefined, '$TimeSeries')
         ];
         console.log("In terms tree")
         console.log('SOURCING DATA')
@@ -1890,6 +2650,45 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
             //this.data[1].addChild(termItem);
 	    }
 	    this.data[2].label += ` (${numFileSpaces})`;
+
+        const time_series =
+            (peircedb.getTimeSeries() || [])
+
+        console.log('HOW LARGE IS TIME SERIES?')
+        console.log(this.data.length)
+        console.log(time_series)
+
+        for(let ts_idx in time_series){
+            let ts = time_series[ts_idx]
+            let label = `${ts.name} : ${ts.interp_type} (${ts.time_space.label}`
+
+            console.log('iterating over...')
+            console.log(ts)
+            if(ts.label == "Pose3D Time Series"){
+                let ts_ = ts as models.Pose3DTimeSeries
+                label = label + `,${ts_.space.label})`
+                let termItem = new TermItem(label);
+                this.data[3].addChild(termItem);
+                console.log('added pose3d')
+            }
+            if(ts.label == "Geom3D Transform Time Series"){
+                let ts_ = ts as models.Geom3DTransformTimeSeries
+                label = label + `,${ts_.domain.label},${ts_.codomain.label})`
+                let termItem = new TermItem(label);
+                this.data[3].addChild(termItem);
+                console.log('added trans ge3')
+            }
+
+            //let termItem = new TermItem(`${ts.name} : ${ts.interp_type}` );
+        }
+        
+        console.log('finished...')
+        this.data[3].label += ` (${time_series.length})`;
+        console.log('returning')
+        console.log(this.data[3].label)
+        console.log(this.data)
+
+        
 	}
 
 	removeItem(id: string | undefined): void {
@@ -1973,10 +2772,6 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
 	    vscode.commands.registerCommand('code-annotation.refreshEntry', () =>
 	        this.refresh()
 	    );
-        /*
-        vscode.commands.registerCommand('code-annotation.addSpace', () => 
-            this.addSpace()
-        );*/
 
 	    this.data = [];
 	    this.sourceData();

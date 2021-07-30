@@ -87,7 +87,11 @@ export function activate(context: vscode.ExtensionContext) {
         //addTerm();
     });
 
-    vscode.commands.registerCommand('code-annotation.addSpace', treeActions.addSpace.bind(treeActions));//async () => {
+    vscode.commands.registerCommand('code-annotation.addSpace', treeActions.addSpace.bind(treeActions));
+    
+    vscode.commands.registerCommand('code-annotation.addTimeSeriesOrValue', treeActions.addTimeSeriesOrValue.bind(treeActions))
+    
+    //async () => {
     //    addSpace();
     //});
 

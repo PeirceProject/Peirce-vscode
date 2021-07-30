@@ -80,23 +80,24 @@ export const setDecorations = (): void => {
                 }else{
                     temp_annotated = false;
                 }
-                console.log(term.error)
-                console.log(temp_error_)
+               // console.log(term.error)
+                //console.log(temp_error_)
                 temprange.push(new vscode.Range(positionStart, positionEnd));
                 // set the decorations using the decorationOption decoration type over the range indicated by this note
                 editor.setDecorations(decorationOption(temp_error_, temp_annotated), temprange);
             }
         });
 
-        console.log('SOURCE GET ALL TERMS')
-        console.log(getAllTerms())
+       //console.log('SOURCE GET ALL TERMS')
+        //console.log(getAllTerms())
+
         getAllTerms().forEach( term => {
             const temprange : vscode.Range[] = [];
             const temp_error : boolean[] = [];
             let temp_error_ : boolean = false;
             if (term.fileName === editor.document.fileName) {
-                console.log('all term')
-                console.log(term)
+                //console.log('all term')
+                //console.log(term)
 
                 const positionStart = new vscode.Position(term.positionStart.line, term.positionStart.character);
                 const positionEnd = new vscode.Position(term.positionEnd.line, term.positionEnd.character);
@@ -118,8 +119,8 @@ export const setDecorations = (): void => {
                 }else{
                     temp_annotated = false;
                 }
-                console.log(term.error)
-                console.log(temp_error_)
+                //console.log(term.error)
+                //console.log(temp_error_)
                 temprange.push(new vscode.Range(positionStart, positionEnd));
                 // set the decorations using the decorationOption decoration type over the range indicated by this note
                 editor.setDecorations(decorationOption(temp_error_, temp_annotated), temprange);

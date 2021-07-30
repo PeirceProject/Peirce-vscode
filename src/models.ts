@@ -16,6 +16,7 @@ export interface Term {
     positionEnd: Position;
     text: string;
     codeSnippet: string;
+    name: string; //this a temporary hack. also, populateapidata should not be a different object than term. this is a headache and then some
     status: 'pending' | 'done';
     id: number;
     interpretation: Interpretation | null;
@@ -138,11 +139,36 @@ export interface Geom3DTransform extends Interpretation {
     codomain: Geom3DCoordinateSpace;
 }
 
-export interface PeirceDb {
-    terms: Term[];
-    constructors: Constructor[]
-    time_coordinate_spaces: TimeCoordinateSpace[];
-    geom1d_coordinate_spaces: Geom1DCoordinateSpace[];
-    geom3d_coordinate_spaces: Geom3DCoordinateSpace[];
-    nextId: number;
+export interface TimeSeries extends Interpretation {
+    time_space:TimeCoordinateSpace;
+    values: Interpretation[];
+}
+
+export interface SeriesIndex extends Interpretation {
+    time_series : TimeSeries;
+    time_value : number | null;
+}
+
+export interface Pose3DTimeSeries extends TimeSeries {
+    space:Geom3DCoordinateSpace;
+}
+
+export interface Geom3DTransformTimeSeries extends TimeSeries {
+    domain:Geom3DCoordinateSpace;
+    codomain:Geom3DCoordinateSpace;
+}
+
+
+export interface TimeStamped extends Interpretation {
+    timestamp: Time
+    value: Interpretation
+    series_name: string | null
+}
+
+export interface TimeStampedPose3D extends TimeStamped {
+    
+}
+
+export interface TimeStampedGeom3DTransform extends TimeStamped {
+
 }
