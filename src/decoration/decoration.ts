@@ -1,6 +1,9 @@
+import { privateEncrypt } from 'crypto';
 import * as vscode from 'vscode';
 import { getConfiguration } from '../configuration';
 import { getTerms, getAllTerms } from '../peircedb';
+
+let prevDecorations : vscode.TextEditorDecorationType[] = [];
 
 // Should we get rid of this? Only referenced in the commented code on line 82 (my thoughts say yes, but would like another opinion)
 const decorationType = () : vscode.TextEditorDecorationType => {
@@ -52,7 +55,16 @@ export const setDecorations = (): void => {
     { return; }
     // iterate through open text editors and go through all Notes in each editor
     const openEditors = vscode.window.visibleTextEditors;
+
     openEditors.forEach( editor => {
+        // delete all previous decorations
+        console.log("DELETING ALL PREVIOUS DECORATIONS");
+        prevDecorations.forEach(dec => {
+            console.log(`DELETING ${dec}`);
+            editor.setDecorations(dec, []);
+        });
+        prevDecorations = [];
+
         const ranges: vscode.Range[] = [];
         const has_error: boolean[] = [];
         getTerms().forEach( term => {
@@ -84,13 +96,14 @@ export const setDecorations = (): void => {
                 //console.log(temp_error_)
                 temprange.push(new vscode.Range(positionStart, positionEnd));
                 // set the decorations using the decorationOption decoration type over the range indicated by this note
-                editor.setDecorations(decorationOption(temp_error_, temp_annotated), temprange);
+                let decType = decorationOption(temp_error_, temp_annotated);
+                prevDecorations.push(decType);
+                editor.setDecorations(decType, temprange);
             }
         });
 
        //console.log('SOURCE GET ALL TERMS')
         //console.log(getAllTerms())
-
         getAllTerms().forEach( term => {
             const temprange : vscode.Range[] = [];
             const temp_error : boolean[] = [];
@@ -123,7 +136,9 @@ export const setDecorations = (): void => {
                 //console.log(temp_error_)
                 temprange.push(new vscode.Range(positionStart, positionEnd));
                 // set the decorations using the decorationOption decoration type over the range indicated by this note
-                editor.setDecorations(decorationOption(temp_error_, temp_annotated), temprange);
+                let decType = decorationOption(temp_error_, temp_annotated);
+                prevDecorations.push(decType);
+                editor.setDecorations(decType, temprange);
             }
         });
         //editor.setDecorations(decorationType(), ranges);
