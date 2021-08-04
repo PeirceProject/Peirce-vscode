@@ -25,7 +25,6 @@ export interface Term {
 }
 
 export interface Constructor {
-    fileName: string;
     id: number;
     name: string;
     interpretation: Interpretation | null;
@@ -39,7 +38,6 @@ export interface MeasurementSystem extends vscode.QuickPickItem{
 
 export interface Space extends vscode.QuickPickItem {
     order_created: number;
-    fileName: string;
 }
 
 export interface TimeCoordinateSpace extends Space {

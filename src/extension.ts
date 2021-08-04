@@ -51,10 +51,15 @@ export function activate(context: vscode.ExtensionContext) {
     // registers the populate command
     vscode.commands.registerCommand('code-annotation.populate', async () => {
         // delete below line if break-y
-        // peirce.setActivePeircefile(vscode.window.activeTextEditor?.document.fileName);
+        peirce.setActivePeircefile(vscode.window.activeTextEditor?.document.fileName);
         vscode.window.showInformationMessage("Populating...")
         peirce.populate();
     });
+    // register the restore command
+    vscode.commands.registerCommand('code-annotation.restore', async () => {
+        vscode.window.showInformationMessage("Restoring Previous Annotations...");
+        peirce.restore();
+    })
 
     vscode.commands.registerCommand('code-annotation.clearAllTerms', async () => {
         const message = 'Are you sure you want to clear all terms? This cannot be reverted.';
@@ -121,20 +126,22 @@ export function activate(context: vscode.ExtensionContext) {
                     // check to see if this is the right note, and if it is, return a hover with the note's intepretation's label
                     let start = note.positionStart.character;
                     let end = note.positionEnd.character;
+                    let error = note.error ? note.error : "";
                     if (start <= hoverPos && end >= hoverPos && note.interpretation?.label){
                         let word = note.interpretation?.label;
-                        let error = note.error ? note.error : "";
                         // TODO: Make this markdown string better, more human readable
                         return {
                             contents: [`**Interpretation**: ${word}`,`**Error**: ${error}`]
+                        };
+                    }else{
+                        return {
+                            contents: [`**Interpretation**: No Interpretation Provided`, `**Error**: ${error}`]
                         };
                     }
                 }
             }
             // if the above yielded nothing, return a null hover, as we don't want anything to appear
-            return {
-                contents: ["No interpr"]
-            };
+            return null;
         }
     })
 

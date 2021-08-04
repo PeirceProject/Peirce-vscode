@@ -36,7 +36,7 @@ export const getPeirceDb = (): PeirceDb => {
     const activePeirceFile = peirce.getActivePeirceFile();
     const annotationFile = getAnnotationFilePath();
     const rawdata = fs.readFileSync(annotationFile, 'utf8');
-    let annotations : PeirceDb = JSON.parse('{"notes":[], "nextId":1, "time_coordinate_spaces":[], "geom1d_coordinate_spaces":[]}');
+    let annotations : PeirceDb = JSON.parse('{"terms":[], "nextId":1, "time_coordinate_spaces":[], "geom1d_coordinate_spaces":[]}');
     if (activePeirceFile){
         annotations = JSON.parse(rawdata)[activePeirceFile];
         if (annotations == undefined){
@@ -130,6 +130,7 @@ export const getTimeSeries = (): models.TimeSeries[] => {
 export const deleteFilesTerms = (fileName : string | undefined): void => {
     let db = getPeirceDb();
     let new_terms : models.Term[] = [];
+    console.log(db);
     db.terms.forEach(term => {
         console.log(term)
         // Might be able to clean this up
@@ -331,7 +332,6 @@ const createPeirceConstructor = (annotationText: string, node_type: string, name
     // fileName = editor.document.uri.fsPath;
     const cons: models.Constructor = {
         name : name,
-        fileName: fileName,
         //text: annotationText,
         status: 'pending',
         id: nextId,

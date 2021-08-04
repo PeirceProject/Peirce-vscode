@@ -61,19 +61,13 @@ const mergeSpaces = (): models.Space[] =>{
     console.log(geom1d);
     console.log(time);
     geom1d.forEach(element =>{
-        if (element.fileName == getActivePeirceFile()) {
-            res.push(element);   
-        }
+        res.push(element);   
     });
     geom3d.forEach(element => {
-        if (element.fileName == getActivePeirceFile()) {
-            res.push(element);   
-        }
+        res.push(element);   
     });
     time.forEach(element => {
-        if (element.fileName == getActivePeirceFile()) {
-            res.push(element);   
-        }
+        res.push(element);   
     });
 
     // sort each space by the order created
@@ -97,14 +91,10 @@ const mergeConstructorsAndTerms = () : (models.Constructor | models.Term)[] => {
     let res : (models.Constructor | models.Term)[] = [];
     // add everything to the empty res array
     constructors.forEach(element => {
-        if (element.fileName == getActivePeirceFile()) {
-            res.push(element);   
-        }
+        res.push(element);   
     });
     terms.forEach(element => {
-        if (element.fileName == getActivePeirceFile()) {
-            res.push(element);   
-        }
+        res.push(element);   
     });
     // sort interps by the order_created, sorting terms w/ null @ end of arr
     res.sort((a, b) => {
@@ -210,7 +200,7 @@ function isTerm(obj: models.Constructor | models.Term): obj is models.Term{
     return (obj as models.Term).fileLine !== undefined;
 }
 
-export const populate = async (): Promise<void> => {
+export const restore = async (): Promise<void> => {
     let origFile = getActivePeirceFile();
     let newFile = vscode.window.activeTextEditor?.document.fileName;
     setActivePeircefile(newFile);
@@ -432,6 +422,113 @@ export const populate = async (): Promise<void> => {
         }
     });
 
+    setDecorations();
+    return;
+};
+export const populate = async (): Promise<void> => {
+    if (vscode.window.activeTextEditor) {
+        console.log("The open text file:")
+        console.log(vscode.window.activeTextEditor.document)
+        //console.log(vscode.window.activeTextEditor.document.getText())
+    }
+    let editor = vscode.window.activeTextEditor;
+    if (editor === undefined)
+        return;
+    const fileText = vscode.window.activeTextEditor?.document.getText();
+    const fileName = vscode.window.activeTextEditor?.document.fileName;
+    for(let i = 0;i<10;i++)
+        console.log('PRINT FILE NAME')
+        console.log(fileName);
+    let terms = peircedb.getTerms();
+    //console.log(terms);
+    //console.log(JSON.stringify(terms));
+    //console.log(fileText);
+    //console.log(JSON.stringify(fileText));
+    let request = {
+        fileName: fileName,
+        file: fileText,
+        terms: terms,
+    }
+    //console.log(JSON.stringify(request));
+    let login = {
+        method: "POST",
+        body: JSON.stringify(request),
+        headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+        },
+        credentials: "include",
+    };
+    const apiUrl = "http://0.0.0.0:8080/api/getState";
+    const response = await fetch(apiUrl, login);
+    const respdata : PopulateAPIReponse = await response.json();
+    console.log('RESP DATA')
+    console.log(response)
+    let data = respdata.data;
+    let cdata = respdata.cdata;
+    let adata = respdata.adata;
+    console.log('ptingint data')
+    console.log(data);
+    console.log('printing cdata')
+    console.log(cdata)
+    let termsSummary = JSON.stringify(data); 
+    peircedb.deleteFilesTerms(fileName);
+    peircedb.resetAllTerms(fileName);
+    // to fix this, we need to have a well-defined JSON response object
+    // and change data : any -> data : well-defined-object[]
+    console.log('entering data loop')
+    data.forEach(element => {
+        console.log(element.coords.begin.line+','+element.coords.end.line)
+        let range = new vscode.Range(
+            new vscode.Position(element.coords.begin.line, element.coords.begin.character), 
+            new vscode.Position(element.coords.end.line, element.coords.end.character), 
+        );
+        // Might be able to clean this up
+        // Set the vscode.editor.selection position,
+        const defaultInterp = "No interpretation provided";
+        if (editor)
+            // peircedb.addPeirceTerm(element.interp, element.node_type, element.error, editor, range);
+
+            // this might not be the best way to clear checked interps on repop, but it's the best I could figure out
+            // the previous way we were adding is left in in case we find bugs/it's better to have it the other way for
+            // future functionality
+            peircedb.addPeirceTerm(defaultInterp, element.node_type, element.error, editor, range, element.name);
+    });
+
+    console.log('ADATA!!!')
+    console.log(adata)
+    console.log('ok well?')
+    
+    adata.forEach(element => {
+        console.log('adata??')
+        console.log(element)
+        console.log(element.coords.begin.line+','+element.coords.end.line)
+        if(element.coords.begin.line > 0 && element.coords.begin.character > 0 
+            && element.coords.end.line > 0 && element.coords.end.character > 0){
+            let range = new vscode.Range(
+                new vscode.Position(element.coords.begin.line, element.coords.begin.character), 
+                new vscode.Position(element.coords.end.line, element.coords.end.character), 
+            );
+            // Might be able to clean this up
+            // Set the vscode.editor.selection position,
+            const defaultInterp = "No interpretation provided";
+            if (editor){
+                // peircedb.addPeirceTerm(element.interp, element.node_type, element.error, editor, range);
+
+                // this might not be the best way to clear checked interps on repop, but it's the best I could figure out
+                // the previous way we were adding is left in in case we find bugs/it's better to have it the other way for
+                // future functionality
+                console.log('adding peirce all term')
+                peircedb.addPeirceAllTerm(defaultInterp, element.node_type, element.error, editor, range);
+            }
+        }
+    });
+
+
+    cdata.forEach(element => {
+        if (editor)
+            peircedb.addPeirceConstructor(element.interp, element.type, element.name, editor);
+    });
     setDecorations();
     return;
 };

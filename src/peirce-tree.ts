@@ -1826,7 +1826,6 @@ export class InfoView {
             }
             else if(stdderPick.label == "Standard Time Coordinate Space"){
                 const new_space : models.TimeCoordinateSpace = {
-                    fileName: fileName,
                     order_created: currInterpNumber,
                     label: annotationText,
                     space: "Classical Time Coordinate Space", 
@@ -1862,7 +1861,6 @@ export class InfoView {
                 if (point_magnitude === undefined || point_magnitude == "" || Number(point_magnitude) == NaN)
                     return;
                 const new_space : models.TimeCoordinateSpace = {
-                    fileName: fileName,
                     order_created: currInterpNumber,
                     label: annotationText, 
                     space: "Classical Time Coordinate Space", 
@@ -1902,7 +1900,6 @@ export class InfoView {
                 return;
             else if(stdderPick.label == "Standard Geom1D Coordinate Space"){
                 const new_space : models.Geom1DCoordinateSpace = {
-                    fileName: fileName,
                     order_created: currInterpNumber,
                     label: annotationText,
                     space: "Classical Geom1D Coordinate Space", 
@@ -1939,7 +1936,6 @@ export class InfoView {
                 if (point_magnitude === undefined || point_magnitude == "" || Number(point_magnitude) == NaN)
                     return;
                 const new_space : models.Geom1DCoordinateSpace = {
-                    fileName: fileName,
                     order_created: currInterpNumber,
                     label: annotationText, 
                     space: "Classical Geom1D Coordinate Space", 
@@ -1977,7 +1973,6 @@ export class InfoView {
                 return;
             else if(stdderPick.label == "Standard Geom3D Coordinate Space"){
                 const new_space : models.Geom3DCoordinateSpace = {
-                    fileName: fileName,
                     order_created: currInterpNumber,
                     label: annotationText,
                     space: "Classical Geom3D Coordinate Space", 
@@ -2037,7 +2032,6 @@ export class InfoView {
                 }
 
                 const new_space : models.Geom3DCoordinateSpace = {
-                    fileName: fileName,
                     order_created: currInterpNumber,
                     label: annotationText, 
                     space: "Classical Geom3D Coordinate Space", 
@@ -2603,20 +2597,15 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
 
 
 	    const constructors = peircedb.getConstructors() || ([]);
-        let numFileConstructors = 0;
         console.log(constructors)
 	    for (let term in constructors) {
             //if (constructors[term].fileName != vscode.window.activeTextEditor?.document.fileName)
             //    continue;
-            if (constructors[term].fileName != fileName){
-                continue;
-            }
 	        const termItem = createConsTermItem(constructors[term]);
             this.data[1].addChild(termItem);
-            numFileConstructors += 1;
 	    }
         // same here
-	    this.data[1].label += ` (${numFileConstructors})`;
+	    this.data[1].label += ` (${constructors.length})`;
 
         const db = peircedb.getPeirceDb()
 
@@ -2629,13 +2618,8 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
             .concat(peircedb.getGeom3DSpaces() || []);
         console.log("spaces")
         console.log(spaces)
-        let numFileSpaces = 0;
 	    for (let s in spaces) {
             const space = spaces[s];
-            if (space.fileName != fileName){
-                continue;
-            }
-            numFileSpaces += 1;
             let termItem : TermItem;
             if (space.space == "Classical Time Coordinate Space"){
                 if (space.parent != null){
