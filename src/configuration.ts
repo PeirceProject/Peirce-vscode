@@ -24,7 +24,7 @@ export const initializeStorageLocation = (location: string) => {
         const extensionFilePath = getAnnotationFilePath();
         console.log("ext exists? " + !fs.existsSync(extensionFilePath))
         // check to see if extension exists by looking for annotation file, then write to that
-        if (true || !fs.existsSync(extensionFilePath)) {
+        if (!fs.existsSync(extensionFilePath)) {
             console.log("writing json to " + extensionFilePath)
             // fs.writeFileSync(extensionFilePath, '{"notes":[], "nextId":1, "time_coordinate_spaces":[], "geom1d_coordinate_spaces":[]}');
             fs.writeFileSync(extensionFilePath, '{}');

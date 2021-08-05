@@ -1258,6 +1258,8 @@ export class InfoView {
         const apiUrl = "http://0.0.0.0:8080/api/check2";
         const response = await fetch(apiUrl, login);
         const data : models.Term[] = await response.json();
+        console.log("DATA");
+        console.log(data);
         //let data = resp.data
         for (let i = 0; i < data.length; i++) {
             terms[i] = data[i]
@@ -1268,6 +1270,8 @@ export class InfoView {
             if (terms_[j].fileName != terms[i].fileName){
                 continue;
             }
+            console.log("TERM FROM API CALL")
+            console.log(terms[i]);
             terms_[j].text = terms[i].text;
             terms_[j].error = terms[i].error;
             i++;

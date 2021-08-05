@@ -10,6 +10,7 @@ import { setDecorations } from
 import { time } from 'console';
 import { resourceUsage } from 'process';
 import { TermItem } from './peirce-tree';
+import { getAnnotationFilePath } from './configuration';
 
 interface APIPosition {
     line: number;
@@ -201,6 +202,8 @@ function isTerm(obj: models.Constructor | models.Term): obj is models.Term{
 }
 
 export const restore = async (): Promise<void> => {
+    console.log("RESTORE CALLED");
+    console.log(getAnnotationFilePath());
     let origFile = getActivePeirceFile();
     let newFile = vscode.window.activeTextEditor?.document.fileName;
     setActivePeircefile(newFile);
@@ -426,6 +429,8 @@ export const restore = async (): Promise<void> => {
     return;
 };
 export const populate = async (): Promise<void> => {
+    console.log("POPULATE CALLED"); 
+    console.log(getAnnotationFilePath());
     if (vscode.window.activeTextEditor) {
         console.log("The open text file:")
         console.log(vscode.window.activeTextEditor.document)
