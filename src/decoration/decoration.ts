@@ -1,9 +1,10 @@
-import { privateEncrypt } from 'crypto';
 import * as vscode from 'vscode';
 import { getConfiguration } from '../configuration';
 import { getTerms, getAllTerms } from '../peircedb';
 
 let prevDecorations : vscode.TextEditorDecorationType[] = [];
+
+const annotUL : string = '#34eb58';
 
 // Should we get rid of this? Only referenced in the commented code on line 82 (my thoughts say yes, but would like another opinion)
 const decorationType = () : vscode.TextEditorDecorationType => {
@@ -30,15 +31,15 @@ const decorationOption = (has_error : boolean, has_annotation : boolean) : vscod
         dark: {
             textDecoration: 
                 has_error ? getConfiguration().decorationColors?.error + " wavy underline":
-                "",
+                (has_annotation ? annotUL + " wavy underline" : ""),
                 // getConfiguration().decorationColors?.dark,
             // textDecoration: has_annotation ? '#EE59FF wavy underline' : ''
         },
         // decoration options for light mode
         light: {
             textDecoration:
-                has_error ? getConfiguration().decorationColors?.light + " wavy underline" :
-                "",
+                has_error ? getConfiguration().decorationColors?.error + " wavy underline":
+                (has_annotation ? annotUL + "wavy underline" : ""),
                 // getConfiguration().decorationColors?.dark,
             // textDecoration: has_annotation ? '#EE59FF wavy underline' : ''
         }

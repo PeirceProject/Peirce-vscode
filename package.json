@@ -126,6 +126,15 @@
         }
       },
       {
+        "command": "code-annotation.restore",
+        "category": "Code Annotation",
+        "title": "Restore Previously Annotated State",
+        "icon": {
+          "light": "resources/light/summary.svg",
+          "dark": "resources/light/summary.svg"
+        }
+      },
+      {
         "command": "code-annotation.openPreview",
         "category": "Code Annotation",
         "title": "Open Preview",
@@ -232,6 +241,11 @@
         },
         {
           "command": "code-annotation.populate",
+          "when": "view == codeAnnotationView",
+          "group": "navigation"
+        },
+        {
+          "command": "code-annotation.restore",
           "when": "view == codeAnnotationView",
           "group": "navigation"
         },
