@@ -32,6 +32,14 @@ export interface Constructor {
     status: 'pending' | 'done';
 }
 
+export interface FunctionItem {
+    id: number;
+    name: string;
+    interpretation: Interpretation | null;
+    node_type: string;
+    status: 'pending' | 'done';
+}
+
 export interface MeasurementSystem extends vscode.QuickPickItem{
     label: string;
 }

@@ -21,6 +21,7 @@ export const setCurrentInterpretationNumber = (val : number) : void => {
 export interface PeirceDb {
     terms: models.Term[];
     constructors: models.Constructor[]
+    function_items: models.FunctionItem[]
     time_coordinate_spaces: models.TimeCoordinateSpace[];
     geom1d_coordinate_spaces: models.Geom1DCoordinateSpace[];
     geom3d_coordinate_spaces: models.Geom3DCoordinateSpace[];
@@ -44,6 +45,7 @@ export const getPeirceDb = (): PeirceDb => {
             return {
                 terms: [],
                 constructors: [],
+                function_items: [],
                 time_coordinate_spaces: [],
                 geom1d_coordinate_spaces: [],
                 geom3d_coordinate_spaces: [],
@@ -55,6 +57,7 @@ export const getPeirceDb = (): PeirceDb => {
         }
         annotations.terms = annotations.terms || [];
         annotations.constructors = annotations.constructors || [];
+        annotations.function_items = annotations.function_items || [];
         annotations.time_coordinate_spaces = annotations.time_coordinate_spaces || [];
         annotations.geom1d_coordinate_spaces = annotations.geom1d_coordinate_spaces || [];
         annotations.geom3d_coordinate_spaces = annotations.geom3d_coordinate_spaces || [];
@@ -78,6 +81,10 @@ export const getTerms = (): models.Term[] => {
 
 export const getConstructors = (): models.Constructor[] => {
     return getPeirceDb().constructors || [];
+}
+
+export const getFunctionItems = (): models.FunctionItem[] => {
+    return getPeirceDb().function_items || [];
 }
 
 export const getTermFromId = (termId : string) : models.Term | null => {
@@ -106,6 +113,21 @@ export const getConstructorFromId = (termId : string) : models.Constructor | nul
     });
     return cons_ret;
 };
+
+export const getFunctionItemFromId = (termId : string) : models.FunctionItem | null => {
+    let funcs = getFunctionItems();
+    let funcs_ret : models.FunctionItem | null = null
+    funcs.forEach(funcs_ => {
+        if (funcs_.id.toString() == termId){
+            funcs_ret = funcs_
+        }
+        else {
+            console.log(funcs_.id.toString() + " IS NOT " + termId)
+        }
+    });
+    return funcs_ret;
+};
+
 
 
 export const getFileTerms = (): models.Term[] => {
@@ -142,6 +164,7 @@ export const deleteFilesTerms = (fileName : string | undefined): void => {
     db.terms = new_terms;
     // delete all constructors and spaces in a very hacky way
     db.constructors = [];
+    db.function_items = []
     db.geom1d_coordinate_spaces = [];
     db.geom3d_coordinate_spaces = [];
     db.time_coordinate_spaces = [];
@@ -194,6 +217,14 @@ export const getConstructorIndex = (cons : models.Constructor) :number => {
     return -1
 };
 
+export const getFunctionItemIndex = (cons : models.FunctionItem) :number => {
+    let function_items = getPeirceDb().function_items;
+    for(let i = 0;i<function_items.length;i++)
+        if(function_items[i].id == cons.id)
+            return i
+    return -1
+};
+
 
 export const saveDb = (db: PeirceDb) => {
     console.log('save this db...')
@@ -240,6 +271,12 @@ export const saveConstructors = (cons : models.Constructor[]) => {
     saveDb(db);
 };
 
+export const saveFunctionItems = (funcs : models.FunctionItem[]) => {
+    let db = getPeirceDb();
+    db.function_items = funcs;
+    saveDb(db);
+};
+
 export const saveTerm = (term : models.Term) => {
     let db = getPeirceDb();
     let index = getTermIndex(term)
@@ -252,6 +289,13 @@ export const saveConstructor = (cons : models.Constructor) => {
     let index = getConstructorIndex(cons)
     db.constructors[index] = cons
     saveConstructors(db.constructors)
+}
+
+export const saveFunctionItem = (func : models.FunctionItem) => {
+    let db = getPeirceDb();
+    let index = getFunctionItemIndex(func)
+    db.function_items[index] = func
+    saveFunctionItems(db.function_items)
 }
 
 const createTerm = (annotationText: string, fromSelection: boolean) => {
@@ -342,6 +386,27 @@ const createPeirceConstructor = (annotationText: string, node_type: string, name
     return cons;
 };
 
+const createPeirceFunctionItem = (annotationText: string, node_type: string, name: string, editor : vscode.TextEditor) => {
+    
+    const nextId = getNextId();
+
+    let fileName = peirce.getActivePeirceFile();
+    if (!fileName){
+        fileName = '';
+    }
+    // fileName = editor.document.uri.fsPath;
+    const func: models.FunctionItem = {
+        name : name,
+        //text: annotationText,
+        status: 'pending',
+        id: nextId,
+        interpretation: null,
+        //error: "Not checked",
+        node_type: node_type,
+    };
+    return func;
+};
+
 const createTermFromSelection = (annotationText: string) => {
     return createTerm(annotationText, true);
 };
@@ -419,6 +484,15 @@ const addConstructorToDb = (cons : models.Constructor) => {
     vscode.window.showInformationMessage('Annotation saved!');
 }
 
+const addFunctionItemToDb = (func : models.FunctionItem) => {
+    let db = getPeirceDb();
+    db.function_items = db.function_items || [];
+    db.function_items.push(func);
+    db.nextId++;
+    saveDb(db)
+    vscode.window.showInformationMessage('Annotation saved!');
+}
+
 const addTimeSeriesToDb = (ts: models.TimeSeries) => {
     let db = getPeirceDb();
     db.all_time_series = db.all_time_series || [];
@@ -450,6 +524,17 @@ export const addPeirceConstructor = async (annotationText : string, type : strin
         console.log(type)
         console.log(name)
         addConstructorToDb(createPeirceConstructor(annotationText, type, name, editor));
+    }
+    setDecorations();
+};
+
+export const addPeirceFunctionItem = async (annotationText : string, type : string, name: string, editor : vscode.TextEditor) => {
+    if(editor) {
+        console.log('adding peirce function item..')
+        console.log(annotationText)
+        console.log(type)
+        console.log(name)
+        addFunctionItemToDb(createPeirceFunctionItem(annotationText, type, name, editor));
     }
     setDecorations();
 };

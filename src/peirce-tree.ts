@@ -85,6 +85,30 @@ const createConsTermItem = (cons: models.Constructor): TermItem => {
     return termItem;
 };
 
+const createFunctionItem = (cons: models.FunctionItem): TermItem => {
+    console.log(cons.interpretation)
+    let details : TermItem[] = [];
+    if (cons.interpretation != null)
+        details = [new TermItem(`Current interpretation: ${cons.interpretation.label}`)]; 
+    else
+        details = [new TermItem(`Current interpretation: No interpretation provided`)];
+    details.push(new TermItem(`Type: ${cons.node_type}`));
+    details.push(new TermItem(`Name: ${cons.name}`));
+    let termItem = new TermItem(`${cons.name}`, details, cons.id.toString());
+    if (termItem.id) {
+        termItem.command = new OpenTermCommand(termItem.id);
+    }
+    if (details) {
+        // If details isn't undefined, set the command to the same as the parent
+        details[0].command = termItem.command;
+    }
+    termItem.tooltip = cons.name;
+    termItem.contextValue = getContextValue(cons.status);
+    termItem.iconPath = getIconPath(cons.status);
+
+    return termItem;
+};
+
 export class InfoView {
     private webviewPanel!: WebviewPanel;
 
@@ -1166,32 +1190,7 @@ export class InfoView {
         else {
             const term_ : models.Term | null = peircedb.getTermFromId(termItem.id)
             console.log(term_)
-            if(term_ === null){
-                const cons_ : models.Constructor | null = peircedb.getConstructorFromId(termItem.id)
-
-                console.log(cons_)
-                if(cons_ === null){
-                }
-                else {
-                    console.log("CREATING INTEPRRETATION")
-                    let interpretation = await this.createInterpretation(true, "")
-                    if(interpretation === null){}
-                    else{
-                        interpretation.node_type = cons_.node_type
-                        cons_.interpretation = interpretation
-                        console.log('attempting api cons save...')
-                        let result : boolean = await this.addConstructorInterpretationRequest(cons_)
-                        if(result){
-                            peircedb.saveConstructor(cons_)
-                            console.log("success cons")
-                        }
-                        else{
-                            console.log("fail cons")
-                        }
-                    }
-                }
-            }
-            else{
+            if(term_ !== null){
                 console.log("creating!")
                 console.log(term_)
                 let termIsIdentifier : boolean = term_.node_type.includes("IDENT");
@@ -1224,6 +1223,46 @@ export class InfoView {
                     }
                 }
             }
+            const cons_ : models.Constructor | null = peircedb.getConstructorFromId(termItem.id)
+            console.log(cons_)
+            if(cons_ !== null){
+                console.log("CREATING INTEPRRETATION")
+                let interpretation = await this.createInterpretation(true, "")
+                if(interpretation === null){}
+                else{
+                    interpretation.node_type = cons_.node_type
+                    cons_.interpretation = interpretation
+                    console.log('attempting api cons save...')
+                    let result : boolean = await this.addConstructorInterpretationRequest(cons_)
+                    if(result){
+                        peircedb.saveConstructor(cons_)
+                        console.log("success cons")
+                    }
+                    else{
+                        console.log("fail cons")
+                    }
+                }
+            }
+            const func_ : models.FunctionItem | null = peircedb.getFunctionItemFromId(termItem.id)
+            console.log(func_)
+            if(func_ !== null){
+                console.log("CREATING INTEPRETATION")
+                let interpretation = await this.createInterpretation(true, "")
+                if(interpretation === null){}
+                else{
+                    interpretation.node_type = func_.node_type
+                    func_.interpretation = interpretation
+                    console.log('attempting api func save...')
+                    let result : boolean = await this.addFunctionItemInterpretationRequest(func_)
+                    if(result){
+                        peircedb.saveFunctionItem(func_)
+                        console.log("success func")
+                    }
+                    else{
+                        console.log("fail func")
+                    }
+                }
+            }
         }
 
         await this.check()
@@ -1233,6 +1272,7 @@ export class InfoView {
     async check() {
         let terms = peircedb.getTerms()
         let constructors = peircedb.getConstructors()
+        let function_items = peircedb.getFunctionItems()
 
         let editor = vscode.window.activeTextEditor;
         if (editor === undefined)
@@ -1244,7 +1284,8 @@ export class InfoView {
             fileName: vscode.window.activeTextEditor?.document.fileName,
             terms: terms,
             spaces: peircedb.getPeirceDb().time_coordinate_spaces.concat(peircedb.getPeirceDb().geom1d_coordinate_spaces),
-            constructors: constructors
+            constructors: constructors,
+            function_items: function_items,
         }
         let login = {
             method: "POST",
@@ -1777,6 +1818,30 @@ export class InfoView {
             credentials: "include",
         };
         const apiUrl = "http://0.0.0.0:8080/api/createConstructorInterpretation";
+        const response = await fetch(apiUrl, login);
+        console.log(response)
+        const data : models.SuccessResponse = await response.json();
+        return data.success
+
+    };
+    
+    async addFunctionItemInterpretationRequest(func: models.FunctionItem) : Promise <boolean> {
+        let request = {
+            function_item:func
+        }
+        console.log('SENDING FUNC INTERP REQUEST')
+        console.log(request)
+        console.log(JSON.stringify(request));
+        let login = {
+            method: "POST",
+            body: JSON.stringify(request),
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+        };
+        const apiUrl = "http://0.0.0.0:8080/api/createFunctionInterpretation";
         const response = await fetch(apiUrl, login);
         console.log(response)
         const data : models.SuccessResponse = await response.json();
@@ -2578,12 +2643,11 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
 	    this.data = [
             new TermItem('Table of Terms', undefined, undefined, '$menu-pending'),
             new TermItem('Constructors', undefined, undefined, '$menu-pending'),
+            new TermItem('Function Items', undefined, undefined, '$menu-pending'),
             new TermItem('Spaces', undefined, undefined, '$Space'),
             new TermItem('Time Series', undefined, undefined, '$TimeSeries')
         ];
         console.log("In terms tree")
-        console.log('SOURCING DATA')
-        console.log('SOURCE THAT DATA')
 	    const annotations = peircedb.getTerms();
         console.log('')
         console.log(annotations)
@@ -2611,6 +2675,19 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
         // same here
 	    this.data[1].label += ` (${constructors.length})`;
 
+
+	    const function_items = peircedb.getFunctionItems() || ([]);
+        console.log('where are function items?')
+        console.log(function_items)
+	    for (let term in function_items) {
+            //if (constructors[term].fileName != vscode.window.activeTextEditor?.document.fileName)
+            //    continue;
+	        const funcItem = createFunctionItem(function_items[term]);
+            this.data[2].addChild(funcItem);
+	    }
+        // same here
+	    this.data[2].label += ` (${function_items.length})`;
+
         const db = peircedb.getPeirceDb()
 
         console.log('heres my db?')
@@ -2628,35 +2705,35 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
             if (space.space == "Classical Time Coordinate Space"){
                 if (space.parent != null){
                     termItem = new TermItem(`${space.label} (Derived from ${space.parent.label}): Origin: ${space.origin} Basis: ${space.basis}`)
-                    this.data[2].addChild(termItem);
+                    this.data[3].addChild(termItem);
                 }
                 else {
                     termItem = new TermItem(`${space.label} : Standard Time Space`);
-                    this.data[2].addChild(termItem);
+                    this.data[3].addChild(termItem);
                 }
             }
             else if (space.space == "Classical Geom1D Coordinate Space") {
                 if (space.parent != null){
                     termItem = new TermItem(`${space.label} (Derived from ${space.parent.label}): Origin: ${space.origin} Basis: ${space.basis}`)
                     const origin = space.origin;
-                    this.data[2].addChild(termItem);
+                    this.data[3].addChild(termItem);
                 }
                 else{
                     termItem = new TermItem(`${space.label} : Standard Geom1D Space`);
                     const origin = space.origin;
-                    this.data[2].addChild(termItem);
+                    this.data[3].addChild(termItem);
                 }
             }
             else if (space.space == "Classical Geom3D Coordinate Space") {
                 if (space.parent != null){
                     termItem = new TermItem(`${space.label} (Derived from ${space.parent.label}): Origin: ${space.origin} Basis: ${space.basis}`)
                     const origin = space.origin;
-                    this.data[2].addChild(termItem);
+                    this.data[3].addChild(termItem);
                 }
                 else{
                     termItem = new TermItem(`${space.label} : Standard Geom3D Space`);
                     const origin = space.origin;
-                    this.data[2].addChild(termItem);
+                    this.data[3].addChild(termItem);
                 }
             }
             else {
@@ -2664,7 +2741,7 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
             //const origin = space.origin;
             //this.data[1].addChild(termItem);
 	    }
-	    this.data[2].label += ` (${spaces.length})`;
+	    this.data[3].label += ` (${spaces.length})`;
 
         const time_series =
             (peircedb.getTimeSeries() || [])
@@ -2683,14 +2760,14 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
                 let ts_ = ts as models.Pose3DTimeSeries
                 label = label + `,${ts_.space.label})`
                 let termItem = new TermItem(label);
-                this.data[3].addChild(termItem);
+                this.data[4].addChild(termItem);
                 console.log('added pose3d')
             }
             if(ts.label == "Geom3D Transform Time Series"){
                 let ts_ = ts as models.Geom3DTransformTimeSeries
                 label = label + `,${ts_.domain.label},${ts_.codomain.label})`
                 let termItem = new TermItem(label);
-                this.data[3].addChild(termItem);
+                this.data[4].addChild(termItem);
                 console.log('added trans ge3')
             }
 
@@ -2698,9 +2775,9 @@ export class PeirceTree implements vscode.TreeDataProvider<TermItem> {
         }
         
         console.log('finished...')
-        this.data[3].label += ` (${time_series.length})`;
+        this.data[4].label += ` (${time_series.length})`;
         console.log('returning')
-        console.log(this.data[3].label)
+        console.log(this.data[4].label)
         console.log(this.data)
 
         

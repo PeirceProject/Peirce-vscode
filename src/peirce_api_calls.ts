@@ -43,9 +43,17 @@ export interface PopulateAPIConstructorData{
     type: string;
     name: string;
 }
+
+export interface PopulateAPIFunctionData{
+    interp: string;
+    type: string;
+    name: string;
+}
+
 export interface PopulateAPIReponse {
     data:PopulateAPIData[];
     cdata:PopulateAPIConstructorData[];
+    fdata:PopulateAPIFunctionData[];
     adata:PopulateAPIData[];
 }
 
@@ -84,13 +92,17 @@ const mergeSpaces = (): models.Space[] =>{
 }
 // returns a list of all Constructors and Terms associated with the current file sorted by order created
 // those items w/ no interp are relegated to end of list
-const mergeConstructorsAndTerms = () : (models.Constructor | models.Term)[] => {
+const mergeConstructorsAndTerms = () : (models.FunctionItem | models.Constructor | models.Term)[] => {
     let preDb = peircedb.getPeirceDb();
     peircedb.saveDb(preDb);
     let constructors = peircedb.getConstructors();
+    let funcItems = peircedb.getFunctionItems();
     let terms = peircedb.getTerms();
-    let res : (models.Constructor | models.Term)[] = [];
+    let res : (models.FunctionItem | models.Constructor | models.Term)[] = [];
     // add everything to the empty res array
+    funcItems.forEach(element => {
+        res.push(element);   
+    });
     constructors.forEach(element => {
         res.push(element);   
     });
@@ -169,6 +181,32 @@ const addConstructorInterpretationRequest = async (cons: models.Constructor) : P
     return data.success
 
 };
+
+const addFunctionItemInterpretationRequest = async (func: models.FunctionItem) : Promise <boolean> => {
+    console.log('sending func')
+    let request = {
+        function_item:func
+    }
+    console.log('SENDING FUNC INTERP REQUEST')
+    console.log(request)
+    console.log(JSON.stringify(request));
+    let login = {
+        method: "POST",
+        body: JSON.stringify(request),
+        headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+        },
+        credentials: "include",
+    };
+    const apiUrl = "http://0.0.0.0:8080/api/createFunctionItemInterpretation";
+    const response = await fetch(apiUrl, login);
+    console.log(response)
+    const data : models.SuccessResponse = await response.json();
+    return data.success
+
+};
+
 
 const addTermInterpretationRequest = async (term: models.Term) : Promise <boolean> => {
     console.log('sending term')
@@ -472,6 +510,7 @@ export const populate = async (): Promise<void> => {
     let data = respdata.data;
     let cdata = respdata.cdata;
     let adata = respdata.adata;
+    let fdata = respdata.fdata;
     console.log('ptingint data')
     console.log(data);
     console.log('printing cdata')
@@ -533,6 +572,12 @@ export const populate = async (): Promise<void> => {
     cdata.forEach(element => {
         if (editor)
             peircedb.addPeirceConstructor(element.interp, element.type, element.name, editor);
+    });
+
+
+    fdata.forEach(element => {
+        if (editor)
+            peircedb.addPeirceFunctionItem(element.interp, element.type, element.name, editor);
     });
     setDecorations();
     return;
